@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TelegramModule } from './telegram/telegram.module';
 import * as dotenv from 'dotenv';
 
@@ -8,7 +6,7 @@ dotenv.config();
 
 @Module({
   imports: [TelegramModule],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

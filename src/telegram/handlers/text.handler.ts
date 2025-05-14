@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Context } from 'src/types/context.interface';
-// import { validatePartInfo } from '../utils/validator';
-import { scrapeProductPriceAndAvailability } from '../utils/scraper';
+import { scrapeAll } from '../scraper'; // Импортируем scrapeAll
 import { Message } from 'telegraf/typings/core/types/typegram';
 
 @Injectable()
@@ -9,24 +8,44 @@ export class TextHandler {
   async handle(ctx: Context) {
     if (ctx.session.step === 'single_part_request') {
       const message = ctx.message as Message.TextMessage;
-      const textMessage = message.text.trim();
+      const textMessage = message?.text?.trim();
+      if (!textMessage) {
+        await ctx.reply('❌ Пожалуйста, отправьте текстовое сообщение.');
+        return;
+      }
 
-      //   const validation = validatePartInfo(textMessage);
-      //   if (!validation.isValid) {
-      //     await ctx.reply(validation.errorMessage);
-      //     return;
-      //   }
+      // const validation = validatePartInfo(textMessage);
+      // if (!validation.isValid) {
+      //   await ctx.reply(validation.errorMessage);
+      //   return;
+      // }
 
       await ctx.reply('✅ Your request has been successfully processed!');
-      const [catalogNumber, quantity, brand] = textMessage.split(',');
+      const [nameItem, count, brand] = textMessage.split(',');
+      if (!nameItem || !count || !brand) {
+        await ctx.reply(
+          '❌ Неверный формат данных. Пожалуйста, укажите номер детали, количество и бренд через запятую.',
+        );
+        return;
+      }
 
-      const result = await scrapeProductPriceAndAvailability(
-        catalogNumber.trim(),
-        quantity.trim(),
-        brand.trim(),
-      );
-      console.log(result);
-      await ctx.reply(result);
+      try {
+        // Отправляем запрос на получение информации с нескольких сайтов
+        const result = await scrapeAll(
+          nameItem.trim(),
+          count.trim(),
+          brand.trim(),
+        );
+        console.log(result);
+
+        // Ответ с результатом
+        await ctx.reply(result);
+      } catch (error) {
+        console.error('Ошибка при запросе цены и наличия:', error);
+        await ctx.reply(
+          '❌ Произошла ошибка при получении информации о товаре. Попробуйте снова позже.',
+        );
+      }
       ctx.session.step = undefined;
     }
   }

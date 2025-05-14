@@ -13,8 +13,8 @@ export class StartHandler {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
           [Markup.button.url('📥 Download Excel Template', this.templateLink)],
-          [Markup.button.callback('📝 Single Part', 'SINGLE')],
-          [Markup.button.callback('📂 Upload File', 'FILE')],
+          [Markup.button.callback('📝 Single Part', 'single_part_request')],
+          [Markup.button.callback('📂 Upload File', 'document')],
         ]),
       },
     );
