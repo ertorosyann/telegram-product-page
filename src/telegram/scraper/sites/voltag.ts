@@ -55,7 +55,7 @@ export async function scrapeVoltag(
           //   }
         }
 
-        return `❌ [Ixora] Товар "${name}" не найден или не соответствует бренду.`;
+        return `❌ [Voltag] Товар "${name}" не найден или не соответствует бренду.`;
       },
       name,
       count,
@@ -65,8 +65,10 @@ export async function scrapeVoltag(
 
     await browser.close();
     return result;
-  } catch (error: any) {
-    await browser.close();
-    return `❌ Ошибка при обращении к Ixora: ${error.message}`;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return `❌ Ошибка при обращении к Voltag: ${error.message}`;
+    }
+    return `❌ Неизвестная ошибка при обращении к Voltag`;
   }
 }

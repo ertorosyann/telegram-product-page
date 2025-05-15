@@ -1,26 +1,32 @@
-// import { scrapeIxora } from './sites/b2b.ixora-auto';
-// import { scrape74Parts } from './sites/74parts';
-// import { scrapeIMachinery } from './sites/imachinery';
-// import { scrapeImpartWithPuppeteer } from './sites/impart';
-// import { scrapeSeltex } from './sites/seltex';
-// import { scrapePcaGroup } from './sites/pcagroup';
-// import { scrapeCamsParts } from './sites/spb.camsparts';
-// import { scrapeDvPt } from './sites/dv-pt';
-// import { scrapeVoltag } from './sites/voltag';
-
+import { scrapeIxora } from './sites/b2b.ixora-auto';
+import { scrape74Parts } from './sites/74parts';
+import { scrapeIMachinery } from './sites/imachinery';
+import { scrapeImpartWithPuppeteer } from './sites/impart';
+import { scrapeSeltex } from './sites/seltex';
+import { scrapePcaGroup } from './sites/pcagroup';
+import { scrapeCamsParts } from './sites/spb.camsparts';
+import { scrapeDvPt } from './sites/dv-pt';
+import { scrapeVoltag } from './sites/voltag';
+import { scrapeShtren } from './sites/shtren';
 import { scrapeRecamgr } from './sites/recamgr';
 
+// import { scrapeTruckmir } from './sites/truckmir';
+// import { scrapeIstkDeutz } from './sites/istk-deutz';
+
 const scrapers = [
-  // { name: 'Seltex', fn: scrapeSeltex },
-  // { name: 'Imachinery', fn: scrapeIMachinery },
-  // { name: '74Parts', fn: scrape74Parts },
-  // { name: 'Impart', fn: scrapeImpartWithPuppeteer },
-  // { name: 'b2b.ixora-auto', fn: scrapeIxora },
-  // { name: 'Pcagroup', fn: scrapePcaGroup },
-  // { name: 'Spb.camsparts', fn: scrapeCamsParts },
-  // { name: 'Voltag', fn: scrapeVoltag },
-  // { name: 'DB-Pt', fn: scrapeDvPt },
-  { name: 'Recamgr', fn: scrapeRecamgr },
+  { name: 'Seltex', fn: scrapeSeltex },
+  { name: 'Imachinery', fn: scrapeIMachinery },
+  { name: '74Parts', fn: scrape74Parts },
+  { name: 'Impart', fn: scrapeImpartWithPuppeteer },
+  { name: 'b2b.ixora-auto', fn: scrapeIxora },
+  { name: 'Pcagroup', fn: scrapePcaGroup },
+  { name: 'Spb.camsparts', fn: scrapeCamsParts },
+  { name: 'Voltag', fn: scrapeVoltag },
+  { name: 'DB-Pt', fn: scrapeDvPt },
+  { name: 'Shtren', fn: scrapeShtren },
+  { name: 'Recamgr', fn: scrapeRecamgr }, // dont work true
+  // { name: 'Truckmir', fn: scrapeTruckmir },  // DONT WORk
+  // { name: 'istk-deutz', fn: scrapeIstkDeutz }, // not realization
 
   // Добавляй другие сайты здесь
 ];

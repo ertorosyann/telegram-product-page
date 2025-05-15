@@ -36,8 +36,11 @@ export async function scrapeCamsParts(
       product.find('.product .product__info .quantity').text().trim() ||
       'Нет данных';
 
-    return `🔍 Найдено на spb.camsparts.ru\nНазвание: ${title}\nБренд: ${brand}\nЦена: ${price}\nНаличие: ${availability}`;
-  } catch (error: any) {
-    return `❌ Ошибка при обращении к CamsParts: ${error.message}`;
+    return `✅ Найдено на spb.camsparts.ru\nНазвание: ${title}\nБренд: ${brand}\nЦена: ${price}\nНаличие: ${availability}`;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return `❌ Ошибка при обращении к CamsParts: ${error.message}`;
+    }
+    return `❌ Неизвестная ошибка при обращении к CamsParts`;
   }
 }

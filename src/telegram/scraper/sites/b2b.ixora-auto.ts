@@ -18,7 +18,6 @@ export async function scrapeIxora(
     await page.type('#searchField', name);
     await page.keyboard.press('Enter');
 
-    // ❗ НЕ ЖДИ НАВИГАЦИЮ
     // Вместо этого — ждём появления таблицы с результатами
     await page.waitForSelector('.SearchResultTableRetail', { timeout: 15000 });
 
