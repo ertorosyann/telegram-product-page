@@ -15,7 +15,7 @@ import { scrapeRecamgr } from './sites/recamgr';
 // import { scrapeZiptehOnline } from './sites/ziptehOnline';
 // import { scrapeVipBlumaq } from './sites/vipBlumaq';
 // import { scrapeTruckmir } from './sites/truckmir';
-import { scrapeIstkDeutz } from './sites/istk-deutz';
+// import { scrapeIstkDeutz } from './sites/istk-deutz';
 
 const scrapers = [
   { name: 'Seltex', fn: scrapeSeltex },
@@ -35,7 +35,7 @@ const scrapers = [
   // { name: 'Intertrek.info', fn: scrapeIntertrekInfo }, //  not realization
   // { name: 'Truckdrive', fn: scrapeTruckdrive },            // not realization
   // { name: 'Truckmir', fn: scrapeTruckmir },            // realization but  DONT WORk
-  { name: 'istk-deutz', fn: scrapeIstkDeutz }, // not realization
+  // { name: 'istk-deutz', fn: scrapeIstkDeutz }, // not realization
   // { name: 'Mirdiesel', fn: scrapeMirDiesel },          // not realization ,its big problem
   { name: 'Shtren', fn: scrapeShtren },
 
