@@ -5,6 +5,7 @@ import { parseExcelFromTelegram, readLocalExcel } from '../exel/parse.and.read';
 import { compareItems } from '../exel/comparator.exelFiles';
 import { appendToResultExcel } from '../exel/generator.createResultExcel';
 import { InputExelFile, ParsedRow } from '../exel/exel.types';
+import { scrapeAll } from '../scraper';
 
 @Injectable()
 export class DocumentHandler {
@@ -38,16 +39,24 @@ export class DocumentHandler {
         document.file_id,
         ctx.telegram,
       );
-      console.log(inputItems);
+
+      // for (const inputItem of inputItems) {
+      //   const code = String(inputItem['кат.номер']).trim();
+      //   if (!code) continue;
+
+      //   const results = await scrapeAll(code);
+      //   console.log(results);
+      // }
 
       const skladItems: ParsedRow[] = readLocalExcel(
         '/Users/picsartacademy/Desktop/sklad2.xlsx',
       );
 
-      const { messages, rows } = compareItems(inputItems, skladItems);
+      const { messages, rows } = await compareItems(inputItems, skladItems);
       // in this place
 
       const resultFilePath = '/Users/picsartacademy/Desktop/result.xlsx';
+
       appendToResultExcel(resultFilePath, rows);
 
       for (const msg of messages) {

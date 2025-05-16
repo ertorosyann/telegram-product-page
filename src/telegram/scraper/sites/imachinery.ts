@@ -1,53 +1,44 @@
-import puppeteer from 'puppeteer';
-
+import axios, { AxiosError } from 'axios';
+import * as cheerio from 'cheerio';
+import { BRANDS } from 'src/constants/brends';
 export async function scrapeIMachinery(
-  name: string,
-  count: string,
-  brand: string,
-): Promise<string> {
-  const url = `https://imachinery.ru/search/?q=${encodeURIComponent(name)}`;
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
+  productNumber: string,
+): Promise<{ name?: string; price?: string; shop?: string }> {
+  const url = `https://imachinery.ru/search/?q=${encodeURIComponent(productNumber)}`;
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+  };
 
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const response = await axios.get(url, { headers });
+    const $ = cheerio.load(response.data as string);
 
-    const elementExists = await page.$('.red-marker');
-    if (!elementExists) {
-      await browser.close();
-      return `❌ [iMachinery]"${name}" не найдено или отсутствует на складе.`;
-    }
+    let foundProduct: { name: string; price: string; shop: string } | undefined;
 
-    const result = await page.evaluate(
-      (name, brand) => {
-        const items = document.querySelectorAll('li');
-        // console.log(brand);
+    $('.result-item li').each((_, el) => {
+      const name = $(el).find('b').first().text().trim();
+      const priceText = $(el).find('b.pric').text().trim();
+      const price = priceText.replace(/^Цена:\s*/, '');
+      // console.log(name, priceText, price);
 
-        for (const item of items) {
-          const title = item.querySelector('b')?.textContent?.trim() || '';
+      const matchedBrand = BRANDS.find((brand) =>
+        name.toLowerCase().includes(brand.toLowerCase()),
+      );
 
-          const price =
-            item.querySelector('.pric')?.textContent?.trim() || 'Не указана';
+      if (matchedBrand) {
+        foundProduct = { name, price, shop: 'imachinery' };
+        return false; // break .each
+      }
+    });
+    // console.log(foundProduct);
 
-          const brand = item.querySelector('.texte')?.textContent?.trim() || '';
-
-          const available = parseInt(price.replace(/\D/g, '')) || 0;
-
-          if (title.toLowerCase().includes(name.toLowerCase())) {
-            return `✅ Найдено на imachinery.ru\nНазвание: ${title}\n Brand: ${brand} \nЦена: ${price}\nВ наличии: ${available} шт.`;
-          }
-        }
-
-        return `❌ [iMachinery] Товар "${name}" не найден.`;
-      },
-      name,
-      brand,
-    );
-
-    await browser.close();
-    return result;
-  } catch (error: any) {
-    await browser.close();
-    return `❌ Ошибка при обращении к iMachinery: ${error.message}`;
+    return foundProduct ?? {};
+  } catch (err: unknown) {
+    const message =
+      err instanceof AxiosError && err.message
+        ? err.message
+        : 'Unknown error on imachinery.ru';
+    console.error(`❌ [IMachinery] Error: ${message}`);
+    return {};
   }
 }

@@ -1,60 +1,68 @@
-import axios from 'axios';
-import cheerio from 'cheerio';
+import puppeteer from 'puppeteer';
 
-const BASE_URL = 'https://istk-deutz.ru';
+export async function scrapeIstkDeutz(
+  name: string,
+  count: string,
+  brand: string,
+): Promise<string> {
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
 
-export async function scrapeIstkDeutz(article: string) {
   try {
-    const searchUrl = `${BASE_URL}/search/?q=${article}`;
-    const response = await axios.get(searchUrl);
-    const html = response.data;
+    await page.goto('https://istk-deutz.ru/', {
+      waitUntil: 'domcontentloaded',
+    });
 
-    const $ = cheerio.load(html);
+    // Type product name into search input
+    await page.type('#title-search-input', name);
 
-    const productLink = $('.arrivals_product_title a').attr('href');
+    // Press Enter and wait for navigation
+    await Promise.all([
+      page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+      page.keyboard.press('Enter'),
+    ]);
 
-    if (!productLink) {
-      console.log('Товар не найден.');
-      return null;
+    // Wait for first product link in search results
+    await page.waitForSelector('tbody tr .arrivals_product_title a', {
+      timeout: 10000,
+    });
+
+    // Get href of first product link
+    const productHref = await page.$eval(
+      'tbody tr .arrivals_product_title a',
+      (el) => (el as HTMLAnchorElement).getAttribute('href') || '',
+    );
+
+    if (!productHref) {
+      throw new Error('Product link not found in search results');
     }
 
-    const fullProductUrl = new URL(productLink, BASE_URL).href;
-    console.log('Найден товар по ссылке:', fullProductUrl);
+    // Go to product page
+    const productUrl = new URL(productHref, 'https://istk-deutz.ru').toString();
+    await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
 
-    // return await parseProductPage(fullProductUrl);
-  } catch (error: any) {
-    console.error('Ошибка поиска:', error.message);
-    return null;
+    // Wait for price and title elements to load
+    await page.waitForSelector('div.price', { timeout: 10000 });
+    await page.waitForSelector('div.title h1', { timeout: 10000 });
+
+    // Extract product title
+    const productTitle = await page.$eval(
+      'div.title h1',
+      (el) => el.textContent?.trim() || 'No title found',
+    );
+
+    // Extract price text
+    const priceText = await page.$eval(
+      'div.price',
+      (el) => el.textContent?.trim() || 'No price found',
+    );
+
+    await browser.close();
+
+    return `📦 Product: ${productTitle}\n💰 Price: ${priceText}`;
+  } catch (error) {
+    await browser.close();
+    console.error('Scraping error:', error);
+    return '❌ Could not retrieve product info from istk-deutz.ru.';
   }
 }
-
-async function parseProductPage(url: string) {
-  try {
-    const response = await axios.get(url);
-    const html = response.data;
-    const $ = cheerio.load(html);
-
-    const title = $('h1').text().trim();
-    const description = $('.product_content_text').text().trim();
-    const breadcrumbs = $('.bread_crumbs a')
-      .map((_, el) => $(el).text().trim())
-      .get()
-      .join(' > ');
-
-    const result = {
-      title,
-      description,
-      breadcrumbs,
-      url,
-    };
-
-    console.log(result);
-    return result;
-  } catch (error: any) {
-    console.error('Ошибка парсинга страницы товара:', error.message);
-    return null;
-  }
-}
-
-// Пример вызова:
-scrapeIstkDeutz('04516789');

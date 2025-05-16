@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Context } from 'src/types/context.interface';
-import { scrapeAll } from '../scraper'; // Импортируем scrapeAll
+import { scrapeAll } from '../scraper';
 import { Message } from 'telegraf/typings/core/types/typegram';
 
 @Injectable()
@@ -21,8 +21,8 @@ export class TextHandler {
       // }
 
       await ctx.reply('✅ Your request has been successfully processed!');
-      const [nameItem, count, brand] = textMessage.split(',');
-      if (!nameItem || !count || !brand) {
+      const [nameItem] = textMessage.split(',');
+      if (!nameItem) {
         await ctx.reply(
           '❌ Неверный формат данных. Пожалуйста, укажите номер детали, количество и бренд через запятую.',
         );
@@ -31,15 +31,11 @@ export class TextHandler {
 
       try {
         // Отправляем запрос на получение информации с нескольких сайтов
-        const result = await scrapeAll(
-          nameItem.trim(),
-          count.trim(),
-          brand.trim(),
-        );
+        const result = await scrapeAll(nameItem.trim());
         console.log(result);
 
         // Ответ с результатом
-        await ctx.reply(result);
+        // await ctx.reply(result);
       } catch (error) {
         console.error('Ошибка при запросе цены и наличия:', error);
         await ctx.reply(

@@ -20,7 +20,7 @@ export async function scrapePcaGroup(
     const $ = cheerio.load(response.data);
 
     const product = $('.card');
-    console.log(product.length);
+    // console.log(product.length);
 
     if (!product.length || product.length !== 1) {
       return `❌ [PCA Group] Товар "${name}" не найден.`;

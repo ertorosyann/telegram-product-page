@@ -61,7 +61,7 @@ export async function scrapeVoltag(
       count,
       brand,
     );
-    console.log(performance.now() - time1);
+    // console.log(performance.now() - time1);
 
     await browser.close();
     return result;

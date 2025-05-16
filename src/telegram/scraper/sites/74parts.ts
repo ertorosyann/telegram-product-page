@@ -1,10 +1,9 @@
 import puppeteer from 'puppeteer';
+import { BRANDS } from 'src/constants/brends';
 
 export async function scrape74Parts(
   name: string,
-  count: string,
-  brand: string,
-): Promise<string> {
+): Promise<{ name?: string; price?: string }> {
   const url = `https://74parts.ru/catalog/?q=${encodeURIComponent(name)}`;
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
@@ -15,38 +14,44 @@ export async function scrape74Parts(
     const elementExists = await page.$('.list_item_wrapp');
     if (!elementExists) {
       await browser.close();
-      return `❌ [74parts] "${name}" не найдено или отсутствует на складе.`;
+      return {};
     }
 
     const result = await page.evaluate(
-      (name, count, brand) => {
+      (name, BRANDS) => {
         const items = document.querySelectorAll('.list_item_wrapp');
         for (const item of items) {
           const title =
             item.querySelector('.item-title')?.textContent?.trim() || '';
-          const price =
-            item.querySelector('.price')?.textContent?.trim() ||
-            'Цена не указана';
+          const price = item.querySelector('.price')?.textContent?.trim() || '';
 
-          if (title.toLowerCase().includes(name.toLowerCase())) {
-            // И дополнительно — проверка бренда
-            if (!brand || title.toLowerCase().includes(brand.toLowerCase())) {
-              return `✅ Найдено на 74parts.ru\nНазвание: ${title}\nБренда: ${brand} \nЦена: ${price}\nНа складе: есть`;
+          const lowerTitle = title.toLowerCase();
+
+          if (lowerTitle.includes(name.toLowerCase())) {
+            const matchedBrand = BRANDS.find((brand) =>
+              lowerTitle.includes(brand.toLowerCase()),
+            );
+
+            if (matchedBrand) {
+              return {
+                name: title,
+                price,
+              };
             }
           }
         }
 
-        return `❌ [74parts] "${name}" не найдено или отсутствует на складе.`;
+        return {};
       },
       name,
-      count,
-      brand,
+      BRANDS,
     );
 
     await browser.close();
     return result;
   } catch (error: any) {
     await browser.close();
-    return `❌ Ошибка при обращении к 74parts.ru: ${error.message}`;
+    console.error(`❌ [74parts] Error: ${error.message}`);
+    return {};
   }
 }

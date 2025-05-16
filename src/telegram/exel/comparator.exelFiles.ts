@@ -1,9 +1,15 @@
-import { InputExelFile, ParsedRow, ResultRow } from './exel.types';
+import { scrapeAll } from '../scraper';
+import {
+  DataFromScrapes,
+  InputExelFile,
+  ParsedRow,
+  ResultRow,
+} from './exel.types';
 
-export function compareItems(
+export async function compareItems(
   inputItems: InputExelFile[],
   skladItems: ParsedRow[],
-): { messages: string[]; notFound: string[]; rows: ResultRow[] } {
+): Promise<{ messages: string[]; notFound: string[]; rows: ResultRow[] }> {
   const messages: string[] = [];
   const notFound: string[] = [];
   const resultRows: ResultRow[] = [];
@@ -15,45 +21,59 @@ export function compareItems(
     const skladMatch = skladItems.find(
       (skladItem) => skladItem['кат.номер'] === partNumber,
     );
+    const priceSklad: number = skladMatch?.['цена, RUB'] ?? 0;
 
-    if (skladMatch) {
-      const price: number = skladMatch['цена, RUB'];
-      const total = Number(price) * Number(inputQty);
+    // const code = String(inputItem['кат.номер']).trim();
+    // if (!code) continue;
+    // const resultFromScrap = await scrapeAll(code);
+    // resultFromScrap.map((resFromScrap: DataFromScrapes) => {
+    //   console.log(resFromScrap);
+    //   const price = Number(resFromScrap.price);
+    //   const total = Number(Number(price) * Number(inputQty));
+    // });
 
-      messages.push(
-        `✅ Найдено: ${partNumber} — ${price} × ${inputQty} = ${total}`,
-      );
-
-      resultRows.push({
-        name: partNumber,
-        kalichestvo: inputQty,
-        luchshayaCena: price,
-        summa: total,
-        luchshiyPostavshik: 'склад',
-        sklad: price,
-        seltex: '',
-        imachinery: '',
-        impart: '',
-        zipteh: '',
-        '74parts': '',
-        'b2b.ixora-auto': '',
-        'vip.blumaq': '',
-        'solid-t': '',
-        pcagroup: '',
-        'spb.camsparts': '',
-        voltag: '',
-        'dv-pt': '',
-        recamgr: '',
-        intertrek: '',
-        kta50: '',
-        truckdrive: '',
-        truckmir: '',
-        'istk-deutz': '',
-        mirdiesel: '',
-        штерн: '',
-      });
-    }
+    resultRows.push({
+      name: partNumber,
+      kalichestvo: inputQty,
+      luchshayaCena: 0,
+      summa: 0,
+      luchshiyPostavshik: 'склад',
+      sklad: 0,
+      seltex: '',
+      imachinery: '',
+      impart: '',
+      '74parts': '',
+      // zipteh: '',
+      // 'b2b.ixora-auto': '',
+      // 'vip.blumaq': '',
+      // 'solid-t': '',
+      // pcagroup: '',
+      // 'spb.camsparts': '',
+      // voltag: '',
+      // 'dv-pt': '',
+      // recamgr: '',
+      // intertrek: '',
+      // kta50: '',
+      // truckdrive: '',
+      // truckmir: '',
+      // 'istk-deutz': '',
+      // mirdiesel: '',
+      // штерн: '',
+    });
+    messages.push(`✅ Найдено: ${partNumber} — ${0} × ${inputQty} = ${0}`);
   }
 
   return { messages, notFound, rows: resultRows };
 }
+
+// async function getDataFromScrapes(inputItems: InputExelFile[]) {
+//   let res = [];
+//   for (const inputItem of inputItems) {
+//     const code = String(inputItem['кат.номер']).trim();
+//     if (!code) continue;
+
+//     const results = await scrapeAll(code);
+//     res.push(results);
+//   }
+//   return res;
+// }
