@@ -20,7 +20,6 @@ export async function scrapeVoltag(
 
     // ❗ НЕ ЖДИ НАВИГАЦИЮ
     // Вместо этого — ждём появления таблицы с результатами
-    const time1 = performance.now();
     await page.waitForSelector('.catalog_group', { timeout: 15000 });
 
     const result = await page.evaluate(
@@ -61,7 +60,6 @@ export async function scrapeVoltag(
       count,
       brand,
     );
-    // console.log(performance.now() - time1);
 
     await browser.close();
     return result;

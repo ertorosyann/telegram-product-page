@@ -7,3 +7,10 @@ export interface Session {
 export interface Context extends TelegrafContext {
   session: Session;
 }
+
+export type ScrapedProduct = {
+  name?: string;
+  price?: string;
+  shop: string;
+  found: boolean;
+};

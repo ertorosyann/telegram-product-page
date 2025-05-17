@@ -23,6 +23,7 @@ export async function scrapeDvPt(
 
     // Кликаем на первый товар
     const firstProductLinkSelector = '.goods a[itemprop="url"]';
+
     await page.waitForSelector(firstProductLinkSelector, { timeout: 10000 });
     await Promise.all([
       page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
@@ -50,6 +51,7 @@ export async function scrapeDvPt(
 
       return `🔍 Найдено на voltag.ru\nНазвание: ${title}\nБренд: ${brand}\nЦена: ${price}\nНаличие: ${quantity}`;
     });
+    // console.log(result);
     await browser.close();
     return result;
   } catch (error: any) {

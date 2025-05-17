@@ -1,10 +1,16 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { BRANDS } from 'src/constants/brends';
+import {
+  BASICS,
+  BRANDS,
+  SOURCE_URLS,
+  SOURCE_WEBPAGE_KEYS,
+} from 'src/constants/constants';
+import { ScrapedProduct } from 'src/types/context.interface';
 export async function scrapeIMachinery(
   productNumber: string,
-): Promise<{ name?: string; price?: string; shop?: string }> {
-  const url = `https://imachinery.ru/search/?q=${encodeURIComponent(productNumber)}`;
+): Promise<ScrapedProduct> {
+  const url = `${SOURCE_URLS.imachinery}${encodeURIComponent(productNumber)}`;
   const headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
   };
@@ -13,32 +19,32 @@ export async function scrapeIMachinery(
     const response = await axios.get(url, { headers });
     const $ = cheerio.load(response.data as string);
 
-    let foundProduct: { name: string; price: string; shop: string } | undefined;
+    const result: ScrapedProduct = {
+      shop: SOURCE_WEBPAGE_KEYS.imachinery,
+      found: false,
+    };
 
     $('.result-item li').each((_, el) => {
       const name = $(el).find('b').first().text().trim();
       const priceText = $(el).find('b.pric').text().trim();
       const price = priceText.replace(/^Цена:\s*/, '');
-      // console.log(name, priceText, price);
 
       const matchedBrand = BRANDS.find((brand) =>
         name.toLowerCase().includes(brand.toLowerCase()),
       );
 
       if (matchedBrand) {
-        foundProduct = { name, price, shop: 'imachinery' };
+        result.name = name;
+        result.price =
+          price.trim() !== '' && !isNaN(+price) ? BASICS.empotyStrin : price;
+        result.found = true;
         return false; // break .each
       }
     });
-    // console.log(foundProduct);
 
-    return foundProduct ?? {};
-  } catch (err: unknown) {
-    const message =
-      err instanceof AxiosError && err.message
-        ? err.message
-        : 'Unknown error on imachinery.ru';
-    console.error(`❌ [IMachinery] Error: ${message}`);
-    return {};
+    return result;
+  } catch (error: unknown) {
+    console.error(`${SOURCE_WEBPAGE_KEYS.imachinery} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.imachinery, found: false };
   }
 }

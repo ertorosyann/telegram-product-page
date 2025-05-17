@@ -1,12 +1,11 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { BRANDS } from 'src/constants/brends';
+import { BRANDS } from 'src/constants/constants';
 
 export async function scrapeZiptehOnline(
   productCode: string,
 ): Promise<{ name?: string; price?: string }> {
   const searchUrl = `http://intertrek.info/search?search=${productCode}`;
-  // console.log(searchUrl);
 
   try {
     const searchResponse = await axios.get<string>(searchUrl);

@@ -1,71 +1,63 @@
 import puppeteer from 'puppeteer';
+import { SOURCE_URLS, SOURCE_WEBPAGE_KEYS } from 'src/constants/constants';
+import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeIxora(
-  name: string,
-  count: string,
-  brand: string,
-): Promise<string> {
+  productNumber: string,
+): Promise<ScrapedProduct> {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
   try {
-    await page.goto('https://b2b.ixora-auto.ru/', {
+    await page.goto(SOURCE_URLS.ixora, {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
     });
 
-    // Ввод артикула в поиск
-    await page.type('#searchField', name);
+    // write in search
+    await page.type('#searchField', productNumber);
     await page.keyboard.press('Enter');
 
-    // Вместо этого — ждём появления таблицы с результатами
+    // wating result
     await page.waitForSelector('.SearchResultTableRetail', { timeout: 15000 });
 
-    const result = await page.evaluate(
-      (name, count, brand) => {
-        const item = document.querySelector('.SearchResultTableRetail');
-        if (!item) return '❌ [Ixora] Ничего не найдено.';
+    const result = await page.evaluate(() => {
+      const item = document.querySelector('.SearchResultTableRetail');
+      // console.log(item);
+      // if (!item) return { shop: SOURCE_WEBPAGE_KEYS.ixora, found: false };
+      // const firstRow = item.querySelector('tbody tr.O');
+      // if (!firstRow) return { shop: SOURCE_WEBPAGE_KEYS.ixora, found: false };
+      // const title =
+      //   firstRow.querySelector('.DetailName')?.textContent?.trim() ||
+      //   'Неизвестно';
+      // console.log(title);
 
-        const firstRow = item.querySelector('tbody tr.O');
-        if (!firstRow) return '❌  [Ixora] Ничего не найдено.';
+      // const price =
+      //   firstRow.querySelector('.PriceDiscount')?.textContent?.trim() ||
+      //   'Не указана';
 
-        const title =
-          firstRow.querySelector('.DetailName')?.textContent?.trim() ||
-          'Неизвестно';
+      // const quantity =
+      //   firstRow.querySelector('td:nth-child(2)')?.textContent?.trim() || '0';
 
-        const findBrand = title.indexOf(brand);
+      // const available = parseInt(quantity.replace(/\D/g, '')) || 0;
 
-        const price =
-          firstRow.querySelector('.PriceDiscount')?.textContent?.trim() ||
-          'Не указана';
+      // if (title.toLowerCase().includes(name.toLowerCase())) {
+      // }
 
-        const quantity =
-          firstRow.querySelector('td:nth-child(2)')?.textContent?.trim() || '0';
-
-        const available = parseInt(quantity.replace(/\D/g, '')) || 0;
-        // const requested = parseInt(count) || 1;
-
-        if (title.toLowerCase().includes(name.toLowerCase())) {
-          //   if (!brand || findBrand.toLowerCase().includes(brand.toLowerCase())) {
-          // if (available >= requested) {
-          return `🔍 Найдено на b2b.ixora-auto.ru\nНазвание: ${title}\nБренд: ${findBrand !== -1 ? brand : 'Неизвестно'}\nЦена: ${price}\nНа складе: ${available} шт.`;
-          // } else {
-          //   return `✅ Найдено на Ixora, но количество недостаточно\nНазвание: ${title}\nБренд: ${findBrand}\nЦена: ${price}\nНа складе: ${available} шт.`;
-          // }
-          //   }
-        }
-
-        return `❌ [Ixora] Товар "${name}" не найден или не соответствует бренду.`;
-      },
-      name,
-      count,
-      brand,
-    );
+      if (!item) return { shop: SOURCE_WEBPAGE_KEYS.ixora, found: false };
+      return {
+        shop: SOURCE_WEBPAGE_KEYS.ixora,
+        found: true,
+        name: 'exim',
+        price: 'chka',
+      };
+    });
 
     await browser.close();
     return result;
   } catch (error: any) {
     await browser.close();
-    return `❌ Ошибка при обращении к Ixora: ${error.message}`;
+    console.error(`${SOURCE_WEBPAGE_KEYS.ixora} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.ixora, found: false };
   }
 }

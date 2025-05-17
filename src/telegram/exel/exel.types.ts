@@ -11,36 +11,31 @@ export type ParsedRow = {
   'сумма, RUB': number;
 };
 
-export type DataFromScrapes = {
-  name: string;
-  price: string;
-};
-
 export type ResultRow = {
   name: string;
   kalichestvo: number;
   luchshayaCena: number;
   summa: number;
   luchshiyPostavshik: string;
-  sklad: number | string | undefined;
-  seltex: string;
-  imachinery: string;
-  impart: string;
-  '74parts': string;
-  // zipteh: string;
-  // 'b2b.ixora-auto': string;
-  // 'vip.blumaq': string;
-  // 'solid-t': string;
-  // pcagroup: string;
-  // 'spb.camsparts': string;
-  // voltag: string;
-  // 'dv-pt': string;
-  // recamgr: string;
-  // intertrek: string;
-  // kta50: string;
-  // truckdrive: string;
-  // truckmir: string;
-  // 'istk-deutz': string;
-  // mirdiesel: string;
-  // штерн: string;
+  sklad: number;
+  seltex: number;
+  imachinery: number;
+  impart: number;
+  '74parts': number;
+  zipteh: number;
+  'b2b.ixora-auto': number;
+  'vip.blumaq': number;
+  'solid-t': number;
+  pcagroup: number;
+  'spb.camsparts': number;
+  voltag: number;
+  'dv-pt': number;
+  recamgr: number;
+  intertrek: number;
+  kta50: number;
+  truckdrive: number;
+  truckmir: number;
+  'istk-deutz': number;
+  mirdiesel: number;
+  штерн: number;
 };

@@ -1,11 +1,18 @@
 import puppeteer from 'puppeteer';
-import { BRANDS } from 'src/constants/brends';
+import {
+  BASICS,
+  SOURCE_URLS,
+  SOURCE_WEBPAGE_KEYS,
+  BRANDS,
+} from 'src/constants/constants';
+import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeImpart(
   productNumber: string,
-): Promise<{ name?: string; price?: string }> {
+): Promise<ScrapedProduct> {
   const query = encodeURIComponent(productNumber);
-  const url = `https://impart.online/catalog/search/?q=${query}`;
+  const url = `${SOURCE_URLS.impart}${query}`;
+  console.log(BASICS, SOURCE_URLS, SOURCE_WEBPAGE_KEYS, BRANDS);
 
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
@@ -16,7 +23,7 @@ export async function scrapeImpart(
       timeout: 60000,
     });
 
-    const result = await page.evaluate(
+    const result: ScrapedProduct = await page.evaluate(
       (productNumber, BRANDS) => {
         const rows = document.querySelectorAll(
           'tbody tr.search-result-table-item',
@@ -28,7 +35,7 @@ export async function scrapeImpart(
                 'td.search-result-table-addit .search-result-table-article',
               )
               ?.textContent?.trim() || '';
-
+          //ToDo this need change oky for browser
           const brandFromMobile =
             row
               .querySelector(
@@ -67,27 +74,31 @@ export async function scrapeImpart(
               row
                 .querySelector('td.search-result-table-price > div:first-child')
                 ?.textContent?.trim() || '';
-
+            const resPrice =
+              price.trim() !== '' && !isNaN(+price)
+                ? BASICS.empotyStrin
+                : price;
             return {
               name: name || fallbackName,
-              price,
+              resPrice,
+              shop: SOURCE_WEBPAGE_KEYS.impart,
+              found: true,
             };
           }
         }
 
-        return {};
+        return { shop: SOURCE_WEBPAGE_KEYS.impart, found: false };
       },
       productNumber,
       BRANDS,
     );
 
     await browser.close();
-    // console.log(result);
 
     return result;
   } catch (error: any) {
     await browser.close();
-    console.error(`❌ [Impart] Puppeteer Error: ${error.message}`);
-    return {};
+    console.error(`${SOURCE_WEBPAGE_KEYS.impart} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.impart, found: false };
   }
 }

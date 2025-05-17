@@ -1,15 +1,17 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import {
+  SOURCE_URLS,
+  SOURCE_WEBPAGE_KEYS,
+  BRANDS,
+  BASICS,
+} from 'src/constants/constants';
+import { ScrapedProduct } from 'src/types/context.interface';
 
-export async function scrapePcaGroup(
-  name: string,
-  count: string,
-  brand: string,
-): Promise<string> {
+export async function scrapePcaGroup(name: string): Promise<ScrapedProduct> {
   try {
-    // Заменяем пробелы на `+`, но НЕ кодируем `+`
     const searchQuery = name.trim().replace(/\s+/g, '+');
-    const searchUrl = `https://pcagroup.ru/search/?search=${searchQuery}`;
+    const searchUrl = `${SOURCE_URLS.pcagroup}${searchQuery}`;
 
     const response = await axios.get(searchUrl, {
       headers: {
@@ -18,31 +20,48 @@ export async function scrapePcaGroup(
     });
 
     const $ = cheerio.load(response.data);
+    const productLink = $('.card__image').attr('href');
 
-    const product = $('.card');
-    // console.log(product.length);
-
-    if (!product.length || product.length !== 1) {
-      return `❌ [PCA Group] Товар "${name}" не найден.`;
+    if (!productLink) {
+      return { shop: SOURCE_WEBPAGE_KEYS.pcagroup, found: false };
     }
 
-    const title = product.find('.card__info .card__title').text().trim() || '';
+    //product detail page
+    const productPage = await axios.get(productLink, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+      },
+    });
 
-    const price = product.find(' .price').text().trim() || '';
+    const $$ = cheerio.load(productPage.data);
 
-    const foundBrand =
-      product.find('.card__info .card__brand').text().trim() ||
-      'Бренд не указан';
+    const brand = $$('li:has(span:contains("Производитель")) span')
+      .last()
+      .text()
+      .trim();
+    const title = $$('h1.product__title').text().trim();
+    const priceText = $$('div.product_price')
+      .text()
+      .trim()
+      .replace(/\s|₽/g, '')
+      .replace(',', '.');
 
-    const availability =
-      product.find('.card__status').text().trim() || 'Нет информации';
-
-    if (!title && !price) {
-      return `❌ [PCA Group] Товар "${name}" не найден.`;
-    } else {
-      return `✅  Найдено на pcagroup.ru\nНазвание: ${title}\nБренд: ${foundBrand}\nЦена: ${price}\nНаличие: ${availability}`;
+    // check brand
+    const isBrandValid = BRANDS.some((b) =>
+      brand.toLowerCase().includes(b.toLowerCase()),
+    );
+    if (!isBrandValid) {
+      return { shop: SOURCE_WEBPAGE_KEYS.pcagroup, found: false };
     }
+    const price = !isNaN(+priceText) ? BASICS.empotyStrin : priceText;
+    return {
+      shop: SOURCE_WEBPAGE_KEYS.pcagroup,
+      found: true,
+      name: title,
+      price,
+    };
   } catch (error: any) {
-    return `❌ Ошибка при обращении к PCA Group: ${error.message}`;
+    console.error(`${SOURCE_WEBPAGE_KEYS.pcagroup} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.pcagroup, found: false };
   }
 }

@@ -32,7 +32,7 @@ export class TextHandler {
       try {
         // Отправляем запрос на получение информации с нескольких сайтов
         const result = await scrapeAll(nameItem.trim());
-        console.log(result);
+        console.log(result, 'texthandler');
 
         // Ответ с результатом
         // await ctx.reply(result);
