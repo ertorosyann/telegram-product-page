@@ -32,8 +32,6 @@ export async function scrapeRecamgr(name: string): Promise<ScrapedProduct> {
     }
 
     const title = product.find(' .lnk').text().trim() || 'Без названия';
-    // ✅ Brand check (case-insensitive)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const matchBrand = BRANDS.find((brand) =>
       title.toLowerCase().includes(brand.toLowerCase()),
     );

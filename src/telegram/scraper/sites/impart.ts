@@ -108,7 +108,6 @@ export async function scrapeImpart(
         return {
           shop: KEYS_.impart,
           found: false,
-          price: BASICS_.zero,
         };
       },
       productNumber,

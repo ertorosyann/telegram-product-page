@@ -30,22 +30,26 @@ export class TextHandler {
       }
 
       try {
-        const settled = await scrapeAll(nameItem.trim());
+        /* ─────────────── изменено: now scrapeAll returns ScrapedProduct[] ─────────────── */
+        const products: ScrapedProduct[] = await scrapeAll(nameItem.trim());
+        /* ──────────────────────────────────────────────────────────────────────────────── */
 
         // Берём только успешно выполненные
-        const fulfilledProducts: ScrapedProduct[] = settled
-          .filter(
-            (r): r is PromiseFulfilledResult<ScrapedProduct> =>
-              r.status === 'fulfilled',
-          )
-          .map((r) => r.value);
+        // const fulfilledProducts: ScrapedProduct[] = settled
+        //   .filter(
+        //     (r): r is PromiseFulfilledResult<ScrapedProduct> =>
+        //       r.status === 'fulfilled',
+        //   )
+        //   .map((r) => r.value);
 
         // Можно также залогировать ошибки:
-        settled
-          .filter((r) => r.status === 'rejected')
-          .forEach((r) => console.warn('🛑 Scraper error:', r.reason));
+        // settled
+        //   .filter((r) => r.status === 'rejected')
+        //   .forEach((r) => console.warn('🛑 Scraper error:', r.reason));
 
-        const msg = formatResults(fulfilledProducts);
+        /* ─────────────── используем products напрямую ─────────────── */
+        const msg = formatResults(products);
+        /* ───────────────────────────────────────────────────────────── */
 
         await ctx.reply(msg || '❌ Ничего не найдено.', {
           parse_mode: 'Markdown',

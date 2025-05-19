@@ -8,10 +8,8 @@ export async function intertrek(productCode: string): Promise<ScrapedProduct> {
 
   /* базовый шаблон результата */
   const result: ScrapedProduct = {
-    shop: SOURCE_WEBPAGE_KEYS.zipteh,
+    shop: SOURCE_WEBPAGE_KEYS.intertrek,
     found: false,
-    name: '',
-    price: 0,
   };
 
   try {

@@ -54,7 +54,6 @@ export async function scrapePcaGroup(name: string): Promise<ScrapedProduct> {
       return {
         shop: SOURCE_WEBPAGE_KEYS.pcagroup,
         found: false,
-        price: BASICS.zero,
       };
     }
     console.log(

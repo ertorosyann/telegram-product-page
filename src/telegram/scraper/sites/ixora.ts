@@ -1,6 +1,5 @@
 import puppeteer from 'puppeteer';
 import {
-  BASICS,
   SOURCE_URLS,
   SOURCE_WEBPAGE_KEYS,
   BRANDS,
@@ -15,8 +14,6 @@ export async function scrapeIxora(
   const result: ScrapedProduct = {
     found: false,
     shop: SOURCE_WEBPAGE_KEYS.ixora,
-    price: BASICS.zero,
-    name: BASICS.empotyString,
   };
   try {
     await page.goto(SOURCE_URLS.ixora, {
@@ -34,10 +31,9 @@ export async function scrapeIxora(
     const resultEvaluate = await page.evaluate(
       (productNumber, BRANDS) => {
         const item = document.querySelector('.SearchResultTableRetail');
-        if (!item) return { shop: 'ixora', found: false, price: '0', name: '' };
+        if (!item) return { shop: 'ixora', found: false };
         const firstRow = item.querySelector('tbody tr.O');
-        if (!firstRow)
-          return { shop: 'ixora', found: false, price: '0', name: '' };
+        if (!firstRow) return { shop: 'ixora', found: false };
         const title =
           firstRow
             .querySelector('.DetailName')
@@ -55,7 +51,7 @@ export async function scrapeIxora(
           !title.toLowerCase().includes(productNumber.toLowerCase()) ||
           !BRANDS
         ) {
-          return { shop: 'ixora', found: false, price: '0', name: '' };
+          return { shop: 'ixora', found: false };
         }
 
         return {

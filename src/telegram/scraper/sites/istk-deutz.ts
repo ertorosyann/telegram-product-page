@@ -1,9 +1,5 @@
 import puppeteer from 'puppeteer';
-import {
-  BASICS,
-  SOURCE_URLS,
-  SOURCE_WEBPAGE_KEYS,
-} from 'src/constants/constants';
+import { SOURCE_URLS, SOURCE_WEBPAGE_KEYS } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeIstkDeutz(name: string): Promise<ScrapedProduct> {
@@ -12,7 +8,6 @@ export async function scrapeIstkDeutz(name: string): Promise<ScrapedProduct> {
   const results: ScrapedProduct = {
     shop: SOURCE_WEBPAGE_KEYS.istk,
     found: false,
-    price: BASICS.zero,
   };
   try {
     await page.goto(SOURCE_URLS.istk, {

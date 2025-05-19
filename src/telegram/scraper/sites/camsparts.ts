@@ -25,7 +25,6 @@ export async function scrapeCamsParts(name: string): Promise<ScrapedProduct> {
       return {
         shop: SOURCE_WEBPAGE_KEYS.camsparts,
         found: false,
-        price: BASICS.zero,
       };
     }
     // product details page

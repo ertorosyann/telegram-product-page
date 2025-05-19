@@ -45,12 +45,9 @@ export class DocumentHandler {
 
       await ctx.reply('Файл сформирован, отправляю…');
 
-      /* --- KEY POINT ---
-         We pass BOTH the buffer AND an explicit filename so Telegram
-         knows the MIME type and extension → users receive “result.xlsx”. */
       await ctx.replyWithDocument({
         source: resultBuffer,
-        filename: 'result.xlsx', // <= makes it an Excel file
+        filename: 'result.xlsx',
       });
 
       ctx.session.step = undefined;
