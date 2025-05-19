@@ -9,18 +9,17 @@ import { ScrapedProduct } from 'src/types/context.interface';
 // import { scrapeRecamgr } from './sites/recamgr'; // done 100% ++++++++++++++++++
 // import { scrapeIstkDeutz } from './sites/istk-deutz';// done 100% ++++++++++++++++++
 // import { intertrek } from './sites/intertrek.info'; // done 100% ++++++++++++++++++
+import { scrapeIxora } from './sites/ixora'; // done 100% ++++++++++++++++++  hamapatasxanox brand chka
 
-// import { scrapeVoltag } from './sites/voltag'; // mihat mer brendin hamapatasxanox artikulov kporces
 // import { scrapeDvPt } from './sites/dv-pt'; // piti nayvi mejy  if (label === 'Бренд:') { ban ka grac u misht chi gtnum artikul - WA100M-8
+// import { scrapeVoltag } from './sites/voltag'; // mihat mer brendin hamapatasxanox artikulov kporces
 // import { scrapeTruckdrive } from './sites/truckdrive';  //piti nayvi errora qcum u chisht artikul dnenq
 
 // import { scrapeTruckmir } from './sites/truckmir'; // dandax
-// import { scrapeIxora } from './sites/ixora'; //hamapatasxanox brand chka
 // import { scrapeMirDiesel } from './sites/mirdiesel'; // not realization
 
 // import { scrapeVipBlumaq } from './sites/vipBlumaq'; //need a  registrations
 // import { scrapeZiptehOnline } from './sites/ziptehOnline'; // need a registrations
-
 //   https://kta50.ru/catalog/, dont work
 //    https://solid-t.ru/catalog/  empty
 
@@ -43,7 +42,7 @@ const scrapers = [
   // { name: 'Truckmir', fn: scrapeTruckmir },
   // { name: 'istk-deutz', fn: scrapeIstkDeutz },
   // { name: 'Mirdiesel', fn: scrapeMirDiesel },
-  // { name: 'b2b.ixora-auto', fn: scrapeIxora },
+  { name: 'b2b.ixora-auto', fn: scrapeIxora },
   // { name: 'Vip.blumaq', fn: scrapeVipBlumaq },
   // Добавляй другие сайты здесь
 ];

@@ -3,6 +3,7 @@ import {
   BASICS,
   SOURCE_URLS,
   SOURCE_WEBPAGE_KEYS,
+  BRANDS,
 } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
 
@@ -30,48 +31,43 @@ export async function scrapeIxora(
     // wating result
     await page.waitForSelector('.SearchResultTableRetail', { timeout: 15000 });
 
-    const resultEvaluate = await page.evaluate((productNumber) => {
-      const item = document.querySelector('.SearchResultTableRetail');
-      if (!item) return { shop: 'ixora', found: false, price: '0', name: '' };
-      const firstRow = item.querySelector('tbody tr.O');
-      if (!firstRow)
-        return { shop: 'ixora', found: false, price: '0', name: '' };
-      const title =
-        firstRow
-          .querySelector('.DetailName')
-          ?.textContent?.trim()
-          .replace(/\n/g, '')
-          .replace(/\s+/g, ' ') || '';
+    const resultEvaluate = await page.evaluate(
+      (productNumber, BRANDS) => {
+        const item = document.querySelector('.SearchResultTableRetail');
+        if (!item) return { shop: 'ixora', found: false, price: '0', name: '' };
+        const firstRow = item.querySelector('tbody tr.O');
+        if (!firstRow)
+          return { shop: 'ixora', found: false, price: '0', name: '' };
+        const title =
+          firstRow
+            .querySelector('.DetailName')
+            ?.textContent?.trim()
+            .replace(/\n/g, '')
+            .replace(/\s+/g, ' ') || '';
 
-      const price =
-        firstRow
-          .querySelector('.PriceDiscount')
-          ?.textContent?.trim()
-          .replace(/\D/g, '') || '0';
-      const brandMatch = [
-        'CAT',
-        'Cummins',
-        'Deutz',
-        'John Deere',
-        'Perkins',
-        'Volvo',
-        'Komatsu',
-        'Scania',
-      ].find((brand) => title.toLowerCase().includes(brand));
-      if (
-        !title.toLowerCase().includes(productNumber.toLowerCase()) ||
-        !brandMatch
-      ) {
-        return { shop: 'ixora', found: false, price: '0', name: '' };
-      }
+        const price =
+          firstRow
+            .querySelector('.PriceDiscount')
+            ?.textContent?.trim()
+            .replace(/\D/g, '') || '0';
+        BRANDS.find((brand) => title.toLowerCase().includes(brand));
+        if (
+          !title.toLowerCase().includes(productNumber.toLowerCase()) ||
+          !BRANDS
+        ) {
+          return { shop: 'ixora', found: false, price: '0', name: '' };
+        }
 
-      return {
-        shop: 'ixora',
-        found: true,
-        name: title,
-        price: price,
-      };
-    }, productNumber);
+        return {
+          shop: 'ixora',
+          found: true,
+          name: title,
+          price: price,
+        };
+      },
+      productNumber,
+      BRANDS,
+    );
 
     Object.assign(result, resultEvaluate);
 

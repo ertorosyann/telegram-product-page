@@ -34,8 +34,8 @@ export async function compareItems(
     // let recamgrPrice: PriceInfo = { price: 0, shopName: 'recamgr' };
     // let truckdrivePrice: PriceInfo = { price: 0, shopName: 'truckdrive' };
     // let istkiDeutzPrice: PriceInfo = { price: 0, shopName: 'istk-deutz' };
-    // let ixoraPrice: PriceInfo = { price: 0, shopName: 'b2b.ixora-auto' };
-    let intertrekPrice: PriceInfo = { price: 0, shopName: 'zipteh' };
+    let ixoraPrice: PriceInfo = { price: 0, shopName: 'b2b.ixora-auto' };
+    // let intertrekPrice: PriceInfo = { price: 0, shopName: 'Intertrek.info' };
 
     /* ------------------------------- скрапинг ------------------------------- */
     const resultFromScrap = await scrapeAll(String(partNumber).trim());
@@ -110,14 +110,14 @@ export async function compareItems(
         //   istkiDeutzPrice = entry;
         //   allPrices.push(entry);
         //   break;
-        // case 'b2b.ixora-auto':
-        //   ixoraPrice = entry;
-        //   allPrices.push(entry);
-        //   break;
-        case 'zipteh':
-          intertrekPrice = entry;
+        case 'b2b.ixora-auto':
+          ixoraPrice = entry;
           allPrices.push(entry);
           break;
+        // case 'Intertrek.info':
+        //   intertrekPrice = entry;
+        //   allPrices.push(entry);
+        //   break;
         default:
           break; // новые магазины добавляй сюда
       }
@@ -159,10 +159,10 @@ export async function compareItems(
       // impart: impartPrice.price,
       '74parts': 0,
       // '74parts': parts74Price.price,
-      // zipteh: 0,
-      zipteh: intertrekPrice.price,
-      'b2b.ixora-auto': 0,
-      // 'b2b.ixora-auto': ixoraPrice.price,
+      zipteh: 0,
+      // zipteh: intertrekPrice.price,
+      // 'b2b.ixora-auto': 0,
+      'b2b.ixora-auto': ixoraPrice.price,
       'vip.blumaq': 0,
       // 'vip.blumaq': vipBlumaqPrice.price,
       'solid-t': 0,
