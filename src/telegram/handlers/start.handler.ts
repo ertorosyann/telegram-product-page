@@ -7,16 +7,24 @@ export class StartHandler {
   private readonly templateLink = process.env.YANDEX_LINK || '';
 
   async handle(ctx: Context) {
-    await ctx.reply(
-      `👋 *Welcome to the Spare Parts Pricing Bot!*\n\nChoose how you'd like to begin:`,
-      {
-        parse_mode: 'Markdown',
-        ...Markup.inlineKeyboard([
-          [Markup.button.url('📥 Download Excel Template', this.templateLink)],
-          [Markup.button.callback('📝 Single Part', 'single_part_request')],
-          [Markup.button.callback('📂 Upload File', 'document')],
-        ]),
-      },
-    );
+    const text = [
+      '👋 *Добро пожаловать в бота по поиску цен на запчасти\\!*',
+      '',
+      'Выберите, с чего хотите начать:',
+    ].join('\n');
+
+    await ctx.reply(text, {
+      parse_mode: 'MarkdownV2',
+      ...Markup.inlineKeyboard([
+        [Markup.button.url('📥 Скачать шаблон Excel', this.templateLink)],
+        [
+          Markup.button.callback(
+            '📝 Запрос одной запчасти',
+            'single_part_request',
+          ),
+        ],
+        [Markup.button.callback('📂 Загрузить файл', 'document')],
+      ]),
+    });
   }
 }

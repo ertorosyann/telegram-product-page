@@ -42,11 +42,17 @@ export class TelegramService {
 
   @On('document')
   async onDocument(@Ctx() ctx: Context) {
+    if (ctx.session.step !== 'document') {
+      await ctx.reply('Пожалуйста, отправляй только текстовое сообщение.');
+    }
     await this.documentHandler.handle(ctx);
   }
 
   @On('text')
   async onText(@Ctx() ctx: Context) {
+    if (ctx.session.step !== 'single_part_request') {
+      await ctx.reply('❌ Пожалуйста, отправьте Excel-файл.');
+    }
     await this.textHandler.handle(ctx);
   }
 

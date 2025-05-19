@@ -24,12 +24,12 @@ export const SOURCE_URLS = {
   truckdrive: 'https://truckdrive.ru/', //+
   istk: 'https://istk-deutz.ru/', // +
   truckmir: 'https://truckmir.ru/', //-
+  mirdiesel: 'http://mirdiesel.ru/',
 
   kta50: 'https://kta50.ru/catalog/', //-
   solid: 'https://solid-t.ru/catalog/', //-
   blumaq: 'https://vip.blumaq.com/', //-
   zipteh: 'https://zipteh.online/', //-
-  mirdiesel: 'http://mirdiesel.ru/', //- webPage faild  response
 };
 export const BASICS = {
   empotyString: '',

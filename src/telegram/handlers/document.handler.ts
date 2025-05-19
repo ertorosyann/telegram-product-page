@@ -3,32 +3,22 @@ import { Context } from 'src/types/context.interface';
 import { Message } from 'telegraf/typings/core/types/typegram';
 import { parseExcelFromTelegram, readLocalExcel } from '../exel/parse.and.read';
 import { compareItems } from '../exel/comparator.exelFiles';
-import { appendToResultExcel } from '../exel/generator.createResultExcel';
+import { createResultExcelBuffer } from '../exel/generator.createResultExcel';
 import { InputExelFile, ParsedRow } from '../exel/exel.types';
 
 @Injectable()
 export class DocumentHandler {
   async handle(ctx: Context) {
-    if (ctx.session.step !== 'document') return;
-
     const message = ctx.message;
     if (!message || !('document' in message)) {
-      await ctx.reply('❌ Пожалуйста, отправьте Excel-файл.');
-      return;
+      return ctx.reply('❌ Пожалуйста, отправьте Excel‑файл.');
     }
 
-    const documentMessage = message as Message.DocumentMessage;
-    const { document } = documentMessage;
-    const fileName = document.file_name;
+    const { document } = message as Message.DocumentMessage;
+    const fileName = document.file_name ?? '';
 
-    if (
-      !fileName ||
-      (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls'))
-    ) {
-      await ctx.reply(
-        '❌ Загрузите Excel файл с расширением `.xlsx` или `.xls`',
-      );
-      return;
+    if (!/\.xlsx?$/.test(fileName)) {
+      return ctx.reply('❌ Загрузите файл с расширением `.xlsx` или `.xls`');
     }
 
     try {
@@ -39,23 +29,30 @@ export class DocumentHandler {
         ctx.telegram,
       );
 
+      if (!inputItems.length) {
+        return ctx.reply('Ваш файл Excel пустой.');
+      }
+
       const skladItems: ParsedRow[] = readLocalExcel(
         '/Users/picsartacademy/Desktop/sklad2.xlsx',
       );
 
       const { messages, rows } = await compareItems(inputItems, skladItems);
-      // in this place
 
-      const resultFilePath = '/Users/picsartacademy/Desktop/result.xlsx';
+      const resultBuffer = createResultExcelBuffer(rows);
 
-      appendToResultExcel(resultFilePath, rows);
+      for (const msg of messages) await ctx.reply(msg);
 
-      for (const msg of messages) {
-        await ctx.reply(msg);
-      }
+      await ctx.reply('Файл сформирован, отправляю…');
 
-      await ctx.reply('Файл сформирован, сейчас отправлю...');
-      await ctx.replyWithDocument({ source: resultFilePath });
+      /* --- KEY POINT ---
+         We pass BOTH the buffer AND an explicit filename so Telegram
+         knows the MIME type and extension → users receive “result.xlsx”. */
+      await ctx.replyWithDocument({
+        source: resultBuffer,
+        filename: 'result.xlsx', // <= makes it an Excel file
+      });
+
       ctx.session.step = undefined;
     } catch (err) {
       console.error('Ошибка при обработке Excel:', err);

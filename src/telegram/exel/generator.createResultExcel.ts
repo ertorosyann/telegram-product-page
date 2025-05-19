@@ -1,7 +1,8 @@
 import * as XLSX from 'xlsx';
 import { ResultRow } from './exel.types';
 
-export function appendToResultExcel(path: string, rows: ResultRow[]): void {
+/** Build an Excel workbook entirely in memory and return it as a Buffer. */
+export function createResultExcelBuffer(rows: ResultRow[]): Buffer {
   const headers = [
     'кат.номер',
     'кол-во',
@@ -41,8 +42,8 @@ export function appendToResultExcel(path: string, rows: ResultRow[]): void {
     row.seltex,
     row.imachinery,
     row.impart,
-    row['74parts'],
     row.zipteh,
+    row['74parts'],
     row['b2b.ixora-auto'],
     row['vip.blumaq'],
     row['solid-t'],
@@ -63,5 +64,7 @@ export function appendToResultExcel(path: string, rows: ResultRow[]): void {
   const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Result');
-  XLSX.writeFile(workbook, path);
+
+  /** XLSX.write(..., { type: 'buffer' }) → Node.js Buffer with valid .xlsx bytes */
+  return XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' }) as Buffer;
 }
