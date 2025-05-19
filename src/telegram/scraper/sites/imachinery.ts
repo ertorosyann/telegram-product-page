@@ -27,7 +27,9 @@ export async function scrapeIMachinery(
     $('.result-item li').each((_, el) => {
       const name = $(el).find('b').first().text().trim();
       const priceText = $(el).find('b.pric').text().trim();
-      const price = priceText.replace(/^Цена:\s*/, '');
+      const price = priceText
+        .replace(/^Цена:\s*/i, '') // убираем "Цена: " в начале, если есть
+        .replace(/\D/g, ''); // всё, что НЕ цифра; удаляем
 
       const matchedBrand = BRANDS.find((brand) =>
         name.toLowerCase().includes(brand.toLowerCase()),
@@ -36,11 +38,12 @@ export async function scrapeIMachinery(
       if (matchedBrand) {
         result.name = name;
         result.price =
-          price.trim() !== '' && !isNaN(+price) ? BASICS.empotyStrin : price;
+          price.trim() !== '' && !isNaN(+price) ? price : BASICS.empotyString;
         result.found = true;
         return false; // break .each
       }
     });
+    console.log(result);
 
     return result;
   } catch (error: unknown) {

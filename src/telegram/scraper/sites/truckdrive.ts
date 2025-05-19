@@ -1,15 +1,23 @@
 import * as puppeteer from 'puppeteer';
+import { ScrapedProduct } from 'src/types/context.interface';
+import {
+  BASICS,
+  SOURCE_URLS,
+  SOURCE_WEBPAGE_KEYS,
+  BRANDS,
+} from 'src/constants/constants';
 
-export async function scrapeTruckdrive(
-  name: string,
-  count: string,
-  brand: string,
-): Promise<string> {
+export async function scrapeTruckdrive(name: string): Promise<any> {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-
+  const result: ScrapedProduct = {
+    shop: SOURCE_WEBPAGE_KEYS.truckdrive,
+    found: false,
+    price: BASICS.zero,
+    name: BASICS.empotyString,
+  };
   try {
-    await page.goto('https://truckdrive.ru/', {
+    await page.goto(SOURCE_URLS.truckdrive, {
       waitUntil: 'domcontentloaded',
     });
 
@@ -33,12 +41,23 @@ export async function scrapeTruckdrive(
       '.offer__product-price span',
       (el: Element) => el.textContent?.trim() ?? '',
     );
+    const brandName = await page.$eval(
+      '.catalog-products-table__product-brand',
+      (el: Element) => el.textContent?.trim() ?? '',
+    );
+    const matchedBrand = BRANDS.find((brand) =>
+      brandName.toLowerCase().includes(brand.toLowerCase()),
+    );
+    if (!matchedBrand) {
+      return result;
+    }
+    result.name = title;
+    result.price = price;
+    await browser.close();
 
-    await browser.close();
-    return `📦 Product: ${title || 'Not found'}\n💰 Price: ${price || 'Not found'}`;
-  } catch (err) {
-    await browser.close();
-    console.error('Scraping error:', (err as Error).message);
-    return '❌ Could not retrieve product info from truckdrive.ru.';
+    return result;
+  } catch (error) {
+    console.error(`${SOURCE_WEBPAGE_KEYS.seltex} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.recamgr, found: false };
   }
 }

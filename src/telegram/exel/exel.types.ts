@@ -37,5 +37,5 @@ export type ResultRow = {
   truckmir: number;
   'istk-deutz': number;
   mirdiesel: number;
-  штерн: number;
+  shtern: number;
 };

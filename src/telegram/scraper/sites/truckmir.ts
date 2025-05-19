@@ -1,62 +1,123 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
-import * as cheerio from 'cheerio';
+import puppeteer, { HTTPResponse, Page } from 'puppeteer';
+import { ScrapedProduct } from 'src/types/context.interface';
+import { BASICS, SOURCE_WEBPAGE_KEYS } from 'src/constants/constants';
+
+async function waitForSearchResponse(page: Page, urlPart: string) {
+  return new Promise<void>((resolve) => {
+    function onResponse(response: HTTPResponse) {
+      if (response.url().includes(urlPart) && response.status() === 200) {
+        page.off('response', onResponse);
+        resolve();
+      }
+    }
+    page.on('response', onResponse);
+  });
+}
 
 export async function scrapeTruckmir(
-  nameItem: string,
-  count: string,
-  brand: string,
-): Promise<string> {
-  const searchUrl = `https://truckmir.ru/parts/${brand}/${nameItem}`;
+  productNumber: string,
+): Promise<ScrapedProduct> {
+  const myBrands = [
+    'CAT',
+    'Cummins',
+    'Deutz',
+    'John Deere',
+    'Perkins',
+    'Volvo',
+    'Komatsu',
+    'Scania',
+  ];
+  const url = 'https://truckmir.ru/';
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
 
-  let browser: Browser | null = null;
+  const result: ScrapedProduct = {
+    shop: SOURCE_WEBPAGE_KEYS.truckmir,
+    found: false,
+    price: BASICS.zero,
+    name: BASICS.empotyString,
+  };
 
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox'],
-    });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
-    const page: Page = await browser.newPage();
+    // Type product number and press Enter to trigger search
+    await page.type('input[name="article"]', productNumber);
 
-    await page.setUserAgent('Mozilla/5.0');
+    await Promise.all([
+      page.keyboard.press('Enter'),
+      waitForSearchResponse(page, 'search'), // Wait for search API response (no timeout)
+    ]);
 
-    await page.goto(searchUrl, {
-      waitUntil: 'networkidle2',
-    });
-
-    // ⏳ Ждём, пока пропадёт индикатор загрузки (или 10 сек)
-    await page.waitForFunction(
-      () => {
-        const el = document.querySelector('.processing_indicator p');
-        return !el || el.textContent?.includes('не найдены') === false;
+    // Wait for the table rows to be visible, timeout increased to 60s to avoid premature timeout
+    await page.waitForSelector(
+      '.table.table-condensed.table-striped tbody tr',
+      {
+        visible: true,
+        timeout: 60000,
       },
-      { timeout: 20000 },
     );
 
-    const content: string = await page.content();
-    const $ = cheerio.load(content);
-
-    const product = $('.all_table_products tbody tr').eq(1);
-
-    const title = product.find('.td_name span').text().trim() || '';
-    const price = product.find('.td_price span').text().trim() || '';
-    const availability =
-      product.find('.td_exist span').text().trim() || 'Нет информации';
-    const srok = product.find('.td_time_to_exe span').text().trim() || '';
-    const sklad = product.find('.short_name_td').text().trim() || '';
-
-    // if (!title && !price) {
-    //   return `❌ [Truckmir] Товар "${nameItem}" не найден.`;
-    // }
-
-    return `✅ Найдено на truckmir.ru\nНазвание: ${title}\nБренд: ${brand}\nЦена: ${price}\nНаличие: ${availability}\nСрок: ${srok}\nСклад: ${sklad}`;
-  } catch (error: unknown) {
-    return `❌ Ошибка при обращении к Truckmir: ${
-      error instanceof Error ? error.message : 'Неизвестная'
-    }`;
-  } finally {
-    if (browser) {
+    // Find all result rows
+    const rows = await page.$$('.table.table-condensed.table-striped tbody tr');
+    if (rows.length === 0) {
       await browser.close();
+      return result;
     }
+
+    // Evaluate rows to find a matching brand, and click it
+    const matched = await page.evaluate((brands) => {
+      const rows = document.querySelectorAll(
+        '.table.table-condensed.table-striped tbody tr',
+      );
+      for (const row of rows) {
+        const brand = row.children[0]?.textContent?.trim();
+        if (
+          brand &&
+          brands.map((b) => b.toUpperCase()).includes(brand.toUpperCase())
+        ) {
+          (row.children[0] as HTMLElement).click();
+          return true;
+        }
+      }
+      return false;
+    }, myBrands);
+
+    if (!matched) {
+      await browser.close();
+      return result;
+    }
+
+    // Wait for navigation to product page
+    await page.waitForNavigation({
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
+    });
+
+    // Scrape product title
+    const title = await page.$eval(
+      '.card-title, .page-title',
+      (el) => el.textContent?.trim() || '',
+    );
+
+    // Scrape product price
+    const priceText = await page.$eval(
+      '.td_price span',
+      (el) => el.textContent?.trim() || '0',
+    );
+    const price = parseFloat(priceText.replace(/[^\d.]/g, ''));
+
+    await browser.close();
+
+    return {
+      shop: SOURCE_WEBPAGE_KEYS.truckmir,
+      found: true,
+      name: title,
+      price: isNaN(price) ? BASICS.zero : price,
+    };
+  } catch (error) {
+    console.error(`${SOURCE_WEBPAGE_KEYS.truckmir} Error:`, error);
+    await browser.close();
+    return result;
   }
 }

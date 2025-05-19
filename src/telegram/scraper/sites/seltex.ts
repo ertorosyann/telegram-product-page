@@ -17,32 +17,39 @@ export async function scrapeSeltex(
     const response = await axios.get(url);
     const $ = cheerio.load(response.data as string);
 
+    //‑‑‑ объект‑ответ по умолчанию
     const result: ScrapedProduct = {
       shop: SOURCE_WEBPAGE_KEYS.seltex,
       found: false,
     };
 
-    $('tbody tr').each((_, row) => {
-      const tds = $(row).find('td');
-      if (tds.length < 6) return;
-      //in text is button cleaning that button
-      tds.eq(1).find('a').remove();
-      const nameText = tds.eq(1).text().trim().replace(/\s+/g, ' ');
-      const isProduct = nameText.length > 1 ? true : false;
+    /* 1️⃣  Берём ровно вторую строку (индекс 1) из tbody.
+           Если её нет, cheerio вернёт пустой set -> length === 0  */
+    const secondRow = $('.table tbody tr').eq(1);
+    if (secondRow.length === 0) return result; // строки нет → found остаётся false
 
-      const matchedBrand = BRANDS.find((brand) =>
-        nameText.toLowerCase().includes(brand.toLowerCase()),
-      );
+    /* 2️⃣  Парсим ячейки в найденной строке */
+    const tds = secondRow.find('td');
+    if (tds.length < 3) return result; // на всякий случай проверка
 
-      if (matchedBrand) {
-        const price = tds.eq(2).text().trim();
-        result.name = nameText;
-        result.price =
-          price.trim() !== '' && !isNaN(+price) ? BASICS.empotyStrin : price;
-        result.found = isProduct;
-        return false; // break the loop
-      }
-    });
+    // убираем <a> из названия
+    tds.eq(1).find('a').remove();
+    const nameText = tds.eq(1).text().trim().replace(/\s+/g, ' ');
+    if (nameText.length === 0) return result;
+
+    // 3️⃣  Проверяем бренд
+    const matchedBrand = BRANDS.find((brand) =>
+      nameText.toLowerCase().includes(brand.toLowerCase()),
+    );
+    if (!matchedBrand) return result;
+
+    /* 4️⃣  Заполняем результат */
+    const rawPrice = tds.eq(2).text().trim();
+    const priceIsNumber = rawPrice !== '' && !isNaN(+rawPrice);
+
+    result.name = nameText;
+    result.price = priceIsNumber ? rawPrice : BASICS.empotyString; // ✔ fixed typo
+    result.found = true;
 
     return result;
   } catch (error: unknown) {

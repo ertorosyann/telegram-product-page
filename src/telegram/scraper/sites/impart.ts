@@ -1,18 +1,23 @@
+// src/telegram/scraper/sites/impart.ts
 import puppeteer from 'puppeteer';
 import {
   BASICS,
+  BRANDS,
   SOURCE_URLS,
   SOURCE_WEBPAGE_KEYS,
-  BRANDS,
 } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
 
+/**
+ * Парсит цены на impart‑shop.ru.
+ * @param productNumber – артикул, который ищем
+ * @returns объект ScrapedProduct
+ */
 export async function scrapeImpart(
   productNumber: string,
 ): Promise<ScrapedProduct> {
   const query = encodeURIComponent(productNumber);
   const url = `${SOURCE_URLS.impart}${query}`;
-  console.log(BASICS, SOURCE_URLS, SOURCE_WEBPAGE_KEYS, BRANDS);
 
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
@@ -20,85 +25,107 @@ export async function scrapeImpart(
   try {
     await page.goto(url, {
       waitUntil: 'networkidle2',
-      timeout: 60000,
+      timeout: 60_000,
     });
 
     const result: ScrapedProduct = await page.evaluate(
-      (productNumber, BRANDS) => {
+      (
+        productNumber_: string,
+        BRANDS_: string[],
+        BASICS_: typeof BASICS,
+        KEYS_: typeof SOURCE_WEBPAGE_KEYS,
+      ) => {
+        /** Преобразуем строку цены в число или 0 */
+        const parsePrice = (priceStr: string): number | string => {
+          const cleaned = priceStr.replace(/[\s ]+/g, '').replace(',', '.');
+          const num = parseFloat(cleaned);
+          return Number.isFinite(num) ? num : BASICS_.zero;
+        };
+
         const rows = document.querySelectorAll(
           'tbody tr.search-result-table-item',
         );
+
         for (const row of rows) {
+          /* --- артикул и бренд --- */
           const article =
             row
               .querySelector(
                 'td.search-result-table-addit .search-result-table-article',
               )
               ?.textContent?.trim() || '';
-          //ToDo this need change oky for browser
-          const brandFromMobile =
+
+          const brandMobile =
             row
               .querySelector(
                 'td.search-result-table-addit .search-result-table-brand.d-inline.d-xxl-none',
               )
               ?.textContent?.trim() || '';
 
-          const brandFromDesktop =
+          const brandDesktop =
             row
               .querySelector('td.search-result-table-brand.d-none.d-xxl-block')
               ?.textContent?.trim() || '';
 
-          const brand = brandFromDesktop || brandFromMobile || '';
+          const brand = brandDesktop || brandMobile || '';
 
-          if (!article.toLowerCase().includes(productNumber.toLowerCase())) {
+          if (!article.toLowerCase().includes(productNumber_.toLowerCase())) {
             continue;
           }
 
-          const matchedBrand = BRANDS.find(
+          const matchedBrand = BRANDS_.find(
             (b) =>
               brand.toLowerCase().includes(b.toLowerCase()) ||
               article.toLowerCase().includes(b.toLowerCase()),
           );
 
           if (matchedBrand) {
-            const name =
-              row
-                .querySelector(
-                  'td.search-result-table-name a .search-result-table-text',
-                )
-                ?.textContent?.trim() || '';
+            /* --- наименование --- */
+            const nameCell = row.querySelector(
+              'td.search-result-table-name a .search-result-table-text',
+            );
+            const name = nameCell?.textContent?.trim() || '';
 
             const fallbackName = article + (brand ? ` ${brand}` : '');
 
-            const price =
-              row
-                .querySelector('td.search-result-table-price > div:first-child')
-                ?.textContent?.trim() || '';
-            const resPrice =
-              price.trim() !== '' && !isNaN(+price)
-                ? BASICS.empotyStrin
-                : price;
+            /* --- цена --- */
+            const priceCell = row.querySelector(
+              'td .search-result-table-price > div:first-child',
+            );
+            const rawPrice = priceCell?.textContent?.trim() || '';
+            const price = parsePrice(rawPrice);
+
             return {
               name: name || fallbackName,
-              resPrice,
-              shop: SOURCE_WEBPAGE_KEYS.impart,
+              price,
+              shop: KEYS_.impart,
               found: true,
             };
           }
         }
 
-        return { shop: SOURCE_WEBPAGE_KEYS.impart, found: false };
+        /* — если ничего не нашли — */
+        return {
+          shop: KEYS_.impart,
+          found: false,
+          price: BASICS_.zero,
+        };
       },
       productNumber,
       BRANDS,
+      BASICS,
+      SOURCE_WEBPAGE_KEYS,
     );
 
     await browser.close();
-
     return result;
-  } catch (error: any) {
+  } catch (error) {
     await browser.close();
     console.error(`${SOURCE_WEBPAGE_KEYS.impart} Error:`, error);
-    return { shop: SOURCE_WEBPAGE_KEYS.impart, found: false };
+    return {
+      shop: SOURCE_WEBPAGE_KEYS.impart,
+      found: false,
+      price: BASICS.zero,
+    };
   }
 }

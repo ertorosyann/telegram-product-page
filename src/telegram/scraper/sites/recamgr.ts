@@ -1,13 +1,21 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import {
+  BASICS,
+  BRANDS,
+  SOURCE_URLS,
+  SOURCE_WEBPAGE_KEYS,
+} from 'src/constants/constants';
+import { ScrapedProduct } from 'src/types/context.interface';
 
-export async function scrapeRecamgr(
-  name: string,
-  count: string,
-  brand: string,
-): Promise<string> {
+export async function scrapeRecamgr(name: string): Promise<ScrapedProduct> {
+  const result: ScrapedProduct = {
+    shop: SOURCE_WEBPAGE_KEYS.recamgr,
+    found: false,
+    price: BASICS.zero,
+  };
   try {
-    const searchUrl = `https://recamgr.ru/products/?search=${encodeURIComponent(name)}`;
+    const searchUrl = `${SOURCE_URLS.recamgr}${encodeURIComponent(name)}`;
 
     const response = await axios.get(searchUrl, {
       headers: {
@@ -20,28 +28,29 @@ export async function scrapeRecamgr(
     const product = $('.goods__item').first(); // Первый товар в списке
 
     if (!product.length) {
-      return `❌ [Recamgr] Товар "${name}" не найден.`;
+      return result;
     }
 
     const title = product.find(' .lnk').text().trim() || 'Без названия';
-
-    const price =
+    // ✅ Brand check (case-insensitive)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    const matchBrand = BRANDS.find((brand) =>
+      title.toLowerCase().includes(brand.toLowerCase()),
+    );
+    if (!matchBrand) {
+      return result;
+    }
+    result.name = title;
+    const rawPrice =
       product.find('.price .new_price .price__value').text().trim() ||
-      'Цена не указана';
+      BASICS.zero;
+    const price = rawPrice.replace(/\s*₽$/, '');
 
-    const availability =
-      product.find('.product-list__stock').text().trim() || 'Нет информации';
-
-    const foundBrand =
-      product.find('.product-list__brand').text().trim() || 'Бренд не указан';
-
-    // Фильтрация по бренду (если передан)
-    // if (brand && !foundBrand.toLowerCase().includes(brand.toLowerCase())) {
-    //   return `⚠️ Найден товар, но бренд "${foundBrand}" не соответствует запрошенному "${brand}".`;
-    // }
-
-    return `🔍 Найдено на Recamgr\nНазвание: ${title}\nБренд: ${foundBrand}\nЦена: ${price}\nНаличие: ${availability}`;
+    result.price = price;
+    result.found = true;
+    return result;
   } catch (error: any) {
-    return `❌ Ошибка при обращении к Recamgr: ${error.message}`;
+    console.error(`${SOURCE_WEBPAGE_KEYS.seltex} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.recamgr, found: false };
   }
 }

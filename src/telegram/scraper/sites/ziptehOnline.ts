@@ -1,12 +1,8 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { BRANDS } from 'src/constants/constants';
 
-export async function scrapeZiptehOnline(
-  productCode: string,
-): Promise<{ name?: string; price?: string }> {
-  const searchUrl = `http://intertrek.info/search?search=${productCode}`;
-
+export async function scrapeZiptehOnline(productCode: string): Promise<string> {
+  const searchUrl = https://zipteh.online/site/login;
   try {
     const searchResponse = await axios.get<string>(searchUrl);
     const $ = cheerio.load(searchResponse.data);
@@ -15,12 +11,13 @@ export async function scrapeZiptehOnline(
       'tr[itemprop="itemListElement"] a[itemprop="item"]',
     ).first();
     if (!firstProductAnchor.length) {
-      return {};
+      return `❌ Product "${productCode}" not found.`;
     }
+    console.log('stea');
 
     const relativeLink = firstProductAnchor.attr('href');
     if (!relativeLink) {
-      return {};
+      return `❌ Product link not found for "${productCode}".`;
     }
 
     const productUrl = `http://intertrek.info${relativeLink}`;
@@ -34,24 +31,17 @@ export async function scrapeZiptehOnline(
       .text()
       .trim();
 
-    const lowerName = productName.toLowerCase();
-
-    const matchedBrand = BRANDS.find((brand) =>
-      lowerName.includes(brand.toLowerCase()),
+    if (!productName || !priceText) {
+      return `⚠️ Info not found for product "${productCode}".`;
+    }
+    console.log(
+      `🔍 Product: ${productCode}\n📦 Name: ${productName}\n💰 Price: ${priceText}`,
     );
 
-    if (productName && priceText && matchedBrand) {
-      return {
-        name: productName,
-        price: priceText,
-      };
-    }
-
-    return {};
+    return `🔍 Product: ${productCode}\n📦 Name: ${productName}\n💰 Price: ${priceText}`;
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : 'Unknown error occurred.';
-    console.error(`❗ [ZiptehOnline] Error: ${message}`);
-    return {};
+    return `❗ Error: ${message}`;
   }
 }

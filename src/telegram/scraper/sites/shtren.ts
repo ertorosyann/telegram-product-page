@@ -1,15 +1,22 @@
 import puppeteer from 'puppeteer';
+import {
+  BASICS,
+  SOURCE_URLS,
+  SOURCE_WEBPAGE_KEYS,
+  BRANDS,
+} from 'src/constants/constants';
+import { ScrapedProduct } from 'src/types/context.interface';
 
-export async function scrapeShtren(
-  name: string,
-  count: string,
-  brand: string,
-): Promise<string> {
+export async function scrapeShtren(name: string): Promise<ScrapedProduct> {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-
+  const result: ScrapedProduct = {
+    shop: SOURCE_WEBPAGE_KEYS.shtern,
+    found: false,
+    price: BASICS.zero,
+  };
   try {
-    await page.goto('https://xn--e1aqig3a.com/', {
+    await page.goto(SOURCE_URLS.shtern, {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
     });
@@ -21,45 +28,54 @@ export async function scrapeShtren(
     // Вместо этого — ждём появления таблицы с результатами
     await page.waitForSelector('.summary', { timeout: 15000 });
 
-    const result = await page.evaluate(
-      (name, count, brand) => {
+    const evaluationResult = await page.evaluate(
+      (name, BRANDS, BASICS) => {
+        const result = {
+          found: false,
+          name: BASICS.empotyString,
+          price: BASICS.zero,
+        };
+
         const item = document.querySelector('.summary');
-        if (!item) return '❌ [Shtren] Ничего не найдено.';
+        if (!item) return result;
 
         const title =
-          item.querySelector('h1')?.textContent?.trim() || 'Неизвестно';
-
-        // const findBrand = title.indexOf(brand);
-
+          item.querySelector('h1')?.textContent?.trim() || BASICS.empotyString;
         const price =
-          item.querySelector('.price span')?.textContent?.trim() ||
-          'Не указана';
+          item
+            .querySelector('.price span')
+            ?.textContent?.trim()
+            ?.replace(/\s|₽/g, '')
+            .replace(',', '.') || BASICS.zero;
 
-        const quantity = 'Неизвестно';
+        const brandInPAge =
+          item.querySelector('.posted_in a')?.textContent?.trim() ||
+          BASICS.empotyString;
 
-        // const requested = parseInt(count) || 1;
+        const matchBrand = BRANDS.find((brand) =>
+          brandInPAge.toLowerCase().includes(brand.toLowerCase()),
+        );
 
-        if (title.toLowerCase().includes(name.toLowerCase())) {
-          //   if (!brand || findBrand.toLowerCase().includes(brand.toLowerCase())) {
-          // if (available >= requested) {
-          return `🔍 Найдено на b2b.Shtren-auto.ru\nНазвание: ${title}\nБренд: ${'Неизвестно'}\nЦена: ${price}\nНа складе: ${quantity} шт.`;
-          // } else {
-          //   return `✅ Найдено на Shtren, но количество недостаточно\nНазвание: ${title}\nБренд: ${findBrand}\nЦена: ${price}\nНа складе: ${available} шт.`;
-          // }
-          //   }
+        if (matchBrand && title.toLowerCase().includes(name.toLowerCase())) {
+          result.found = true;
+          result.name = title;
+          result.price = price;
         }
 
-        return `❌ [Shtren] Товар "${name}" не найден или не соответствует бренду.`;
+        return result;
       },
       name,
-      count,
-      brand,
+      BRANDS,
+      BASICS,
     );
+
+    Object.assign(result, evaluationResult);
 
     await browser.close();
     return result;
   } catch (error: any) {
     await browser.close();
-    return `❌ Ошибка при обращении к Shtren: ${error.message}`;
+    console.error(`${SOURCE_WEBPAGE_KEYS.shtern} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.shtern, found: false };
   }
 }

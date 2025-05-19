@@ -21,9 +21,12 @@ export async function scrapeCamsParts(name: string): Promise<ScrapedProduct> {
     const firstProduct = $('.product__list .product').first();
 
     const relativeLink = firstProduct.find('a.product__img').attr('href');
-    // console.log(relativeLink);
     if (!relativeLink) {
-      return { shop: SOURCE_WEBPAGE_KEYS.camsparts, found: false };
+      return {
+        shop: SOURCE_WEBPAGE_KEYS.camsparts,
+        found: false,
+        price: BASICS.zero,
+      };
     }
     // product details page
     const productUrl = `https://camsparts.ru${relativeLink}`;
@@ -49,9 +52,7 @@ export async function scrapeCamsParts(name: string): Promise<ScrapedProduct> {
       $$('.price__new[itemprop="offers"] span[itemprop="price"]').attr(
         'content',
       ) || $$('.price__new[itemprop="offers"] span[itemprop="price"]').text();
-    const price = priceText
-      ? priceText.replace(/[^\d]/g, '')
-      : BASICS.empotyStrin;
+    const price = priceText ? priceText.replace(/[^\d]/g, '') : BASICS.zero;
 
     return {
       shop: SOURCE_WEBPAGE_KEYS.camsparts,

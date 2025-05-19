@@ -28,7 +28,7 @@ export function appendToResultExcel(path: string, rows: ResultRow[]): void {
     'truckmir',
     'istk-deutz',
     'mirdiesel',
-    'штерн',
+    'shtern',
   ];
 
   const data = rows.map((row) => [
@@ -57,7 +57,7 @@ export function appendToResultExcel(path: string, rows: ResultRow[]): void {
     row.truckmir,
     row['istk-deutz'],
     row.mirdiesel,
-    row.штерн,
+    row.shtern,
   ]);
 
   const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);

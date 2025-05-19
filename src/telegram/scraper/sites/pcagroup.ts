@@ -40,7 +40,7 @@ export async function scrapePcaGroup(name: string): Promise<ScrapedProduct> {
       .text()
       .trim();
     const title = $$('h1.product__title').text().trim();
-    const priceText = $$('div.product_price')
+    const priceText = $$('.product_price_wr .product_price ') // is not true
       .text()
       .trim()
       .replace(/\s|₽/g, '')
@@ -51,9 +51,19 @@ export async function scrapePcaGroup(name: string): Promise<ScrapedProduct> {
       brand.toLowerCase().includes(b.toLowerCase()),
     );
     if (!isBrandValid) {
-      return { shop: SOURCE_WEBPAGE_KEYS.pcagroup, found: false };
+      return {
+        shop: SOURCE_WEBPAGE_KEYS.pcagroup,
+        found: false,
+        price: BASICS.zero,
+      };
     }
-    const price = !isNaN(+priceText) ? BASICS.empotyStrin : priceText;
+    console.log(
+      'finded price ',
+      priceText,
+      'nan check  = ',
+      !isNaN(+priceText),
+    );
+    const price = !isNaN(+priceText) ? priceText : BASICS.zero;
     return {
       shop: SOURCE_WEBPAGE_KEYS.pcagroup,
       found: true,

@@ -13,7 +13,7 @@ import { DocumentHandler } from './handlers/document.handler';
   imports: [
     TelegrafModule.forRootAsync({
       useFactory: () => ({
-        token: '7514879581:AAEHbfLw_EgtW6zNq0FomM6OUGtPr4iTTDY',
+        token: '7559322394:AAHHLZ08o2aK7wD6gctr5RTtDEvdrsFx0HU',
         middlewares: [session()], // keep session
       }),
     }),

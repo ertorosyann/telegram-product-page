@@ -1,72 +1,77 @@
 import puppeteer from 'puppeteer';
+import { BRANDS, SOURCE_WEBPAGE_KEYS } from 'src/constants/constants';
 
-export async function scrapeVoltag(
-  name: string,
-  count: string,
-  brand: string,
-): Promise<string> {
+export async function scrapeVoltag(productNumber: string) {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
   try {
-    await page.goto('https://voltag.ru/', {
-      waitUntil: 'domcontentloaded',
-      timeout: 30000,
-    });
+    await page.goto('https://voltag.ru', { waitUntil: 'domcontentloaded' });
 
-    // Ввод артикула в поиск
-    await page.type('#header_search_input', name);
-    await page.keyboard.press('Enter');
+    await page.waitForSelector('#header_search_input');
+    await page.type('#header_search_input', productNumber);
 
-    // ❗ НЕ ЖДИ НАВИГАЦИЮ
-    // Вместо этого — ждём появления таблицы с результатами
-    await page.waitForSelector('.catalog_group', { timeout: 15000 });
+    await Promise.all([
+      page.click('#header_search_button'),
+      page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+    ]);
 
-    const result = await page.evaluate(
-      (name, count, brand) => {
-        const firstRow = document.querySelector('.catalog_group');
-        if (!firstRow) return '❌  [Voltag] Ничего не найдено.';
-
-        const title =
-          document.querySelector('header h1')?.textContent?.trim() ||
-          'Неизвестно';
-
-        const brandElement =
-          document.querySelector('td.mnfr')?.textContent?.trim() ||
-          'Неизвестно';
-
-        const price =
-          firstRow.querySelector('.catalog_group_price')?.textContent?.trim() ||
-          'Не указана';
-
-        const quantity =
-          firstRow
-            .querySelector('catalog_group_quantity')
-            ?.textContent?.trim() || '0';
-
-        if (title.toLowerCase().includes(name.toLowerCase())) {
-          //   if (!brand || findBrand.toLowerCase().includes(brand.toLowerCase())) {
-          // if (available >= requested) {
-          return `🔍 Найдено на b2b.ixora-auto.ru\nCatalog Number:${name}\nНазвание: ${title}\nБренд: ${brandElement}\nЦена: ${price}\nНа складе: ${quantity} шт.`;
-          // } else {
-          //   return `✅ Найдено на Ixora, но количество недостаточно\nНазвание: ${title}\nБренд: ${findBrand}\nЦена: ${price}\nНа складе: ${available} шт.`;
-          // }
-          //   }
-        }
-
-        return `❌ [Voltag] Товар "${name}" не найден или не соответствует бренду.`;
-      },
-      name,
-      count,
-      brand,
+    const productUrl = await page.$eval(
+      'a[href*="/price/group/"]',
+      (el) => el.href,
     );
 
+    console.log('✅ Product URL:', productUrl);
+
+    await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
+
+    await page.waitForFunction(
+      () => {
+        const tbody = document.querySelector('tbody[aria-live="polite"]');
+        return tbody && tbody.querySelectorAll('tr').length > 0;
+      },
+      { timeout: 50000 },
+    );
+
+    const matchedProduct = await page.evaluate((brands) => {
+      const tbody = document.querySelector('tbody[aria-live="polite"]');
+      if (!tbody) return null;
+
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+
+      for (const row of rows) {
+        const brandCell = row.querySelector('td');
+        if (!brandCell) continue;
+
+        const brand = brandCell.textContent?.trim() || '';
+        if (brands.includes(brand)) {
+          const priceCell = row.querySelectorAll('td')[6]; // փոփոխիր ինդեքսը ըստ իրական դասավորվածության
+          const price = priceCell?.textContent?.trim() || null;
+          return { brand, price };
+        }
+      }
+
+      return null;
+    }, BRANDS);
+
     await browser.close();
-    return result;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return `❌ Ошибка при обращении к Voltag: ${error.message}`;
+
+    if (matchedProduct) {
+      console.log('✅ Found matching product:', matchedProduct);
+      return {
+        shop: 'voltag',
+        found: true,
+        brand: matchedProduct.brand,
+        price: matchedProduct.price,
+      };
+    } else {
+      return {
+        shop: 'voltag',
+        found: false,
+      };
     }
-    return `❌ Неизвестная ошибка при обращении к Voltag`;
+  } catch (error) {
+    console.error(`${SOURCE_WEBPAGE_KEYS.voltag} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.voltag, found: false };
   }
 }

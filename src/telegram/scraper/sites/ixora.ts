@@ -1,5 +1,9 @@
 import puppeteer from 'puppeteer';
-import { SOURCE_URLS, SOURCE_WEBPAGE_KEYS } from 'src/constants/constants';
+import {
+  BASICS,
+  SOURCE_URLS,
+  SOURCE_WEBPAGE_KEYS,
+} from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeIxora(
@@ -7,7 +11,12 @@ export async function scrapeIxora(
 ): Promise<ScrapedProduct> {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-
+  const result: ScrapedProduct = {
+    found: false,
+    shop: SOURCE_WEBPAGE_KEYS.ixora,
+    price: BASICS.zero,
+    name: BASICS.empotyString,
+  };
   try {
     await page.goto(SOURCE_URLS.ixora, {
       waitUntil: 'domcontentloaded',
@@ -21,37 +30,50 @@ export async function scrapeIxora(
     // wating result
     await page.waitForSelector('.SearchResultTableRetail', { timeout: 15000 });
 
-    const result = await page.evaluate(() => {
+    const resultEvaluate = await page.evaluate((productNumber) => {
       const item = document.querySelector('.SearchResultTableRetail');
-      // console.log(item);
-      // if (!item) return { shop: SOURCE_WEBPAGE_KEYS.ixora, found: false };
-      // const firstRow = item.querySelector('tbody tr.O');
-      // if (!firstRow) return { shop: SOURCE_WEBPAGE_KEYS.ixora, found: false };
-      // const title =
-      //   firstRow.querySelector('.DetailName')?.textContent?.trim() ||
-      //   'Неизвестно';
-      // console.log(title);
+      if (!item) return { shop: 'ixora', found: false, price: '0', name: '' };
+      const firstRow = item.querySelector('tbody tr.O');
+      if (!firstRow)
+        return { shop: 'ixora', found: false, price: '0', name: '' };
+      const title =
+        firstRow
+          .querySelector('.DetailName')
+          ?.textContent?.trim()
+          .replace(/\n/g, '')
+          .replace(/\s+/g, ' ') || '';
 
-      // const price =
-      //   firstRow.querySelector('.PriceDiscount')?.textContent?.trim() ||
-      //   'Не указана';
+      const price =
+        firstRow
+          .querySelector('.PriceDiscount')
+          ?.textContent?.trim()
+          .replace(/\D/g, '') || '0';
+      const brandMatch = [
+        'CAT',
+        'Cummins',
+        'Deutz',
+        'John Deere',
+        'Perkins',
+        'Volvo',
+        'Komatsu',
+        'Scania',
+      ].find((brand) => title.toLowerCase().includes(brand));
+      if (
+        !title.toLowerCase().includes(productNumber.toLowerCase()) ||
+        !brandMatch
+      ) {
+        return { shop: 'ixora', found: false, price: '0', name: '' };
+      }
 
-      // const quantity =
-      //   firstRow.querySelector('td:nth-child(2)')?.textContent?.trim() || '0';
-
-      // const available = parseInt(quantity.replace(/\D/g, '')) || 0;
-
-      // if (title.toLowerCase().includes(name.toLowerCase())) {
-      // }
-
-      if (!item) return { shop: SOURCE_WEBPAGE_KEYS.ixora, found: false };
       return {
-        shop: SOURCE_WEBPAGE_KEYS.ixora,
+        shop: 'ixora',
         found: true,
-        name: 'exim',
-        price: 'chka',
+        name: title,
+        price: price,
       };
-    });
+    }, productNumber);
+
+    Object.assign(result, resultEvaluate);
 
     await browser.close();
     return result;

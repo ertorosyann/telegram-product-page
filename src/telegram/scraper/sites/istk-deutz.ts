@@ -1,15 +1,21 @@
 import puppeteer from 'puppeteer';
+import {
+  BASICS,
+  SOURCE_URLS,
+  SOURCE_WEBPAGE_KEYS,
+} from 'src/constants/constants';
+import { ScrapedProduct } from 'src/types/context.interface';
 
-export async function scrapeIstkDeutz(
-  name: string,
-  count: string,
-  brand: string,
-): Promise<string> {
+export async function scrapeIstkDeutz(name: string): Promise<ScrapedProduct> {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-
+  const results: ScrapedProduct = {
+    shop: SOURCE_WEBPAGE_KEYS.istk,
+    found: false,
+    price: BASICS.zero,
+  };
   try {
-    await page.goto('https://istk-deutz.ru/', {
+    await page.goto(SOURCE_URLS.istk, {
       waitUntil: 'domcontentloaded',
     });
 
@@ -30,7 +36,7 @@ export async function scrapeIstkDeutz(
     // Get href of first product link
     const productHref = await page.$eval(
       'tbody tr .arrivals_product_title a',
-      (el) => (el as HTMLAnchorElement).getAttribute('href') || '',
+      (el) => el.getAttribute('href') || '',
     );
 
     if (!productHref) {
@@ -54,15 +60,18 @@ export async function scrapeIstkDeutz(
     // Extract price text
     const priceText = await page.$eval(
       'div.price',
-      (el) => el.textContent?.trim() || 'No price found',
+      (el) => el.textContent?.trim() || '',
     );
+    const price = parseInt(priceText.replace(/[^\d]/g, ''), 10); // 352776
 
+    results.name = productTitle;
+    results.price = price;
     await browser.close();
-
-    return `📦 Product: ${productTitle}\n💰 Price: ${priceText}`;
+    results.found = true;
+    return results;
   } catch (error) {
     await browser.close();
-    console.error('Scraping error:', error);
-    return '❌ Could not retrieve product info from istk-deutz.ru.';
+    console.error(`${SOURCE_WEBPAGE_KEYS.seltex} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.seltex, found: false };
   }
 }

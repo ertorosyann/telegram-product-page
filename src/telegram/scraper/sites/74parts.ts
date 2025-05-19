@@ -11,78 +11,51 @@ export async function scrape74Parts(
   productNumber: string,
 ): Promise<ScrapedProduct> {
   const url = `${SOURCE_URLS.parts74}${encodeURIComponent(productNumber)}`;
+
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
-    const elementExists = await page.$('.list_item_wrapp');
-    if (!elementExists) {
-      await browser.close();
-      return { shop: SOURCE_WEBPAGE_KEYS.parts74, found: false };
-    }
+    const result: ScrapedProduct = await page.$$eval(
+      '.list_item_wrapp:first-of-type',
+      ([item], BRANDS, EMPTY): ScrapedProduct => {
+        if (!item) return { shop: 'parts74', found: false };
 
-    const result: ScrapedProduct = await page.evaluate(
-      (
-        productNumber: string,
-        BRANDS: string[],
-        shopKey: string,
-        emptyString: string,
-      ) => {
-        const items = document.querySelectorAll('.list_item_wrapp');
+        const title =
+          item
+            .querySelector('.description_wrapp .item-title a')
+            ?.textContent?.trim() ?? '';
 
-        for (const item of items) {
-          const titleEl = item.querySelector('.item-title');
-          const priceEl = item.querySelector('.price');
+        const matched = BRANDS.some((b) =>
+          title.toLowerCase().includes(b.toLowerCase()),
+        );
+        if (!matched) return { shop: 'parts74', found: false };
 
-          const titleRaw = titleEl?.textContent;
-          const priceRaw = priceEl?.textContent;
+        const price =
+          item
+            .querySelector('.information_wrapp .price .price_value')
+            ?.textContent?.trim() || EMPTY;
 
-          const title = typeof titleRaw === 'string' ? titleRaw.trim() : '';
-          const price = typeof priceRaw === 'string' ? priceRaw.trim() : '';
-
-          const resPrice =
-            price !== '' && !Number.isNaN(Number(price)) ? emptyString : price;
-
-          const lowerTitle = title.toLowerCase();
-
-          if (lowerTitle.includes(productNumber.toLowerCase())) {
-            const matchedBrand = BRANDS.find((brand) =>
-              lowerTitle.includes(brand.toLowerCase()),
-            );
-
-            if (matchedBrand) {
-              return {
-                productNumber: title,
-                resPrice,
-                shop: shopKey,
-                found: true,
-              };
-            }
-          }
-        }
-
-        return { shop: shopKey, found: false };
+        return {
+          name: title,
+          price,
+          shop: 'parts74',
+          found: true,
+        };
       },
-      productNumber,
-      BRANDS,
-      SOURCE_WEBPAGE_KEYS.parts74,
-      BASICS.empotyStrin,
+      BRANDS, // ← 1‑й внешний аргумент
+      BASICS.empotyString, // ← 2‑й внешний аргумент
     );
+
+    // console.log(result);
 
     await browser.close();
     return result;
-  } catch (error: unknown) {
+  } catch (e) {
     await browser.close();
-
-    // Optional: add type guard if you want to log error.message safely
-    if (error instanceof Error) {
-      console.error(`${SOURCE_WEBPAGE_KEYS.parts74} Error:`, error.message);
-    } else {
-      console.error(`${SOURCE_WEBPAGE_KEYS.parts74} Unknown error:`, error);
-    }
-
+    console.error(`${SOURCE_WEBPAGE_KEYS.parts74} error:`, e);
     return { shop: SOURCE_WEBPAGE_KEYS.parts74, found: false };
   }
 }
