@@ -8,16 +8,20 @@ import { StartHandler } from './handlers/start.handler';
 import { TextHandler } from './handlers/text.handler';
 import { HelpHandler } from './handlers/help.handler';
 import { DocumentHandler } from './handlers/document.handler';
+import { UsersService } from './authorization/users.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { User, UserSchema } from './authorization/schema/schema';
 
 @Module({
   imports: [
     TelegrafModule.forRootAsync({
       useFactory: () => ({
-        token: '7559322394:AAHHLZ08o2aK7wD6gctr5RTtDEvdrsFx0HU',
-        middlewares: [session()], // keep session
+        token: '8044191482:AAFNH5xxTVwsPsCByJI86MZ5w0R0Pmc6Jv4', // ✅ use env later
+        middlewares: [session()],
       }),
     }),
     HttpModule,
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), // ✅
   ],
   providers: [
     TelegramService,
@@ -26,6 +30,7 @@ import { DocumentHandler } from './handlers/document.handler';
     TextHandler,
     DocumentHandler,
     YandexDiskService,
+    UsersService,
   ],
 })
 export class TelegramModule {}

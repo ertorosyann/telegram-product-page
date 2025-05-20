@@ -14,6 +14,7 @@ export async function scrapeMirDiesel(name: string): Promise<ScrapedProduct> {
     price: BASICS.zero,
     found: false,
     shop: SOURCE_WEBPAGE_KEYS.mirdiesel,
+    brand: BASICS.empotyString,
   };
 
   try {
@@ -54,22 +55,23 @@ export async function scrapeMirDiesel(name: string): Promise<ScrapedProduct> {
 
     let foundBrands = false;
     $('ul[id^="bx_"][id*="_prop_490_list"] li').each((_, el) => {
-      const brandText = $(el).find('span.cnt').text().trim();
+      const brandText: string = $(el).find('span.cnt').text().trim();
 
       if (BRANDS.includes(brandText)) {
         foundBrands = true;
+        result.brand = brandText;
       }
     });
 
     const title = $('#pagetitle').text().trim();
+    const russianWords =
+      title.match(/[А-Яа-яЁё]+/g)?.join() || BASICS.empotyString;
 
     if (foundBrands) {
-      return {
-        name: title,
-        price: parsedPriceText,
-        found: true,
-        shop: SOURCE_WEBPAGE_KEYS.mirdiesel,
-      };
+      result.name = russianWords;
+      result.found = true;
+      result.price = parsedPriceText;
+      result.shop = SOURCE_WEBPAGE_KEYS.mirdiesel;
     }
 
     return result;

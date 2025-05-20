@@ -7,8 +7,10 @@ export const BRANDS = [
   'Volvo',
   'Komatsu',
   'Scania',
+  'KRAUF',
 ];
 export const SOURCE_URLS = {
+  udtTechnika: 'https://www.udt-technika.ru/',
   seltex: 'https://www.seltex.ru/catalog/', //+
   parts74: 'https://74parts.ru/catalog/?q=', // +
   imachinery: 'https://imachinery.ru/search/?q=', //+
@@ -25,8 +27,6 @@ export const SOURCE_URLS = {
   istk: 'https://istk-deutz.ru/', // +
   truckmir: 'https://truckmir.ru/', //-
   mirdiesel: 'http://mirdiesel.ru/',
-  udtTechnika: 'https://www.udt-technika.ru/',
-
   kta50: 'https://kta50.ru/catalog/', //-
   solid: 'https://solid-t.ru/catalog/', //-
   blumaq: 'https://vip.blumaq.com/', //-
@@ -54,7 +54,7 @@ export const SOURCE_WEBPAGE_KEYS = {
   intertrek: 'intertrek',
   truckdrive: 'truckdrive',
   truckmir: 'truckmir',
-  istk: 'istk-deutz',
+  istk: 'istk',
   mirdiesel: 'mirdiesel',
   shtern: 'shtern',
   udtTechnika: 'udtTechnika',

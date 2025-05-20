@@ -1,5 +1,4 @@
 import { ScrapedProduct } from 'src/types/context.interface';
-
 import { scrapeSeltex } from './sites/seltex'; // done 100% ++++++++++++++++++
 import { scrapeIMachinery } from './sites/imachinery'; // done 100% ++++++++++++++++++
 import { scrape74Parts } from './sites/74parts'; // done 100% ++++++++++++++++++
@@ -25,6 +24,7 @@ import { udtTechnika } from './sites/udt-technika';
 //    https://solid-t.ru/catalog/  empty
 
 const scrapers = [
+  // { name: 'udtTechnika', fn: udtTechnika }, //+
   { name: 'Seltex', fn: scrapeSeltex },
   { name: 'Imachinery', fn: scrapeIMachinery },
   { name: '74Parts', fn: scrape74Parts },
@@ -37,13 +37,11 @@ const scrapers = [
   { name: 'Intertrek.info', fn: intertrek },
   { name: 'b2b.ixora-auto', fn: scrapeIxora },
   { udtTechnika: 'udtTechnika', fn: udtTechnika },
-
   // { name: 'Mirdiesel', fn: scrapeMirDiesel },
   // { name: 'Dv-Pt', fn: scrapeDvPt },
   // { name: 'Voltag', fn: scrapeVoltag },
   // { name: 'Truckdrive', fn: scrapeTruckdrive }, //
   // { name: 'Truckmir', fn: scrapeTruckmir },
-
   // dont work
   // { name: 'Vip.blumaq', fn: scrapeVipBlumaq },
   // { name: 'Zipteh.online', fn: scrapeZiptehOnline },

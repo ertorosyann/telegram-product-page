@@ -4,9 +4,12 @@ import { scrapeAll } from '../scraper';
 import { Message } from 'telegraf/typings/core/types/typegram';
 import { getMainMenuKeyboard } from '../utils/manu';
 import { normalizeInput } from '../utils/validator';
+import { UsersService } from '../authorization/users.service';
 
 @Injectable()
 export class TextHandler {
+  constructor(private readonly userService: UsersService) {} // ԱՅՍՏԵՂ ԱՎԵԼԱՑՐԵԼ
+
   async handle(ctx: Context) {
     if (ctx.session.step === 'single_part_request') {
       const message = ctx.message as Message.TextMessage;
@@ -55,6 +58,24 @@ export class TextHandler {
         parse_mode: 'MarkdownV2',
         ...getMainMenuKeyboard(),
       });
+    } else if (ctx.session.step === 'add_user') {
+      const message = ctx.message as Message.TextMessage;
+      const textMessage = message?.text?.trim();
+
+      if (!textMessage) {
+        await ctx.reply('❌ Пожалуйста, введите ID пользователя.');
+        return;
+      }
+
+      const telegramId = Number(textMessage);
+      if (isNaN(telegramId)) {
+        await ctx.reply('❌ ID должен быть числом.');
+        return;
+      }
+
+      await this.userService.addUser({ telegramId });
+      await ctx.reply('✅ Пользователь добавлен в базу данных.');
+      ctx.session.step = undefined;
     }
   }
 }

@@ -16,6 +16,7 @@ import { HelpHandler } from './handlers/help.handler';
 import { YandexDiskService } from '../yandex/yandex-disk.service';
 import { HttpService } from '@nestjs/axios';
 import { DocumentHandler } from './handlers/document.handler';
+import { UsersService } from './authorization/users.service';
 
 @Injectable()
 @Update()
@@ -28,6 +29,7 @@ export class TelegramService {
     private readonly textHandler: TextHandler,
     private readonly helpHandler: HelpHandler,
     private readonly documentHandler: DocumentHandler,
+    private readonly usersService: UsersService, // ✅ inject it
   ) {}
 
   @Start()
@@ -54,7 +56,10 @@ export class TelegramService {
 
   @On('text')
   async onText(@Ctx() ctx: Context) {
-    if (ctx.session.step === 'single_part_request') {
+    if (
+      ctx.session.step === 'single_part_request' ||
+      ctx.session.step === 'add_user'
+    ) {
       await this.textHandler.handle(ctx); // обрабатываем ввод
     } else {
       await ctx.reply(
@@ -70,6 +75,12 @@ export class TelegramService {
     ctx.session.step = 'single_part_request'; // Устанавливаем текущий шаг сессии
     await ctx.answerCbQuery(); // Убираем "loading" у кнопки
     await ctx.reply('Введите номер детали для поиска:');
+  }
+  @Action('add_user')
+  async addUser(@Ctx() ctx: Context) {
+    ctx.session.step = 'add_user';
+    await ctx.answerCbQuery();
+    await ctx.reply('Пожалуйста, введите ID пользователя.');
   }
 
   // Обработчик для кнопки '📂 Upload File'

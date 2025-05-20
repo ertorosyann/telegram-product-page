@@ -1,7 +1,7 @@
 import { Context as TelegrafContext } from 'telegraf';
 
 export interface Session {
-  step?: 'single_part_request' | 'document' | null;
+  step?: 'single_part_request' | 'document' | 'add_user' | null;
 }
 
 export interface Context extends TelegrafContext {
@@ -13,4 +13,5 @@ export type ScrapedProduct = {
   price?: any;
   shop: string;
   found: boolean;
+  brand?: string;
 };
