@@ -27,11 +27,12 @@ export async function compareItems(
     let impartPrice: PriceInfo = { price: 0, shopName: 'impart' };
     let pcagroupPrice: PriceInfo = { price: 0, shopName: 'pcagroup' };
     let camspartsPrice: PriceInfo = { price: 0, shopName: 'camsparts' };
-    let shtrenPrice: PriceInfo = { price: 0, shopName: 'shtern' };
+    // let shtrenPrice: PriceInfo = { price: 0, shopName: 'shtern' };
     let recamgrPrice: PriceInfo = { price: 0, shopName: 'recamgr' };
     let istkiDeutzPrice: PriceInfo = { price: 0, shopName: 'istk-deutz' };
     let intertrekPrice: PriceInfo = { price: 0, shopName: 'Intertrek.info' };
     let ixoraPrice: PriceInfo = { price: 0, shopName: 'b2b.ixora-auto' };
+    let udtTechnikaPrice: PriceInfo = { price: 0, shopName: 'udtTechnika' };
 
     // let mirDieselPrice: PriceInfo = { price: 0, shopName: 'mirdiesel' };
     // let voltagPrice: PriceInfo = { price: 0, shopName: 'voltag' };
@@ -41,6 +42,7 @@ export async function compareItems(
 
     /* ------------------------------- скрапинг ------------------------------- */
     /* ------------------------------- скрапинг ------------------------------- */
+
     const resultFromScrap = await scrapeAll(String(partNumber).trim());
     console.log(resultFromScrap);
 
@@ -83,10 +85,10 @@ export async function compareItems(
           camspartsPrice = entry;
           allPrices.push(entry);
           break;
-        case 'shtern':
-          shtrenPrice = entry;
-          allPrices.push(entry);
-          break;
+        // case 'shtern':
+        //   shtrenPrice = entry;
+        //   allPrices.push(entry);
+        //   break;
         case 'recamgr':
           recamgrPrice = entry;
           allPrices.push(entry);
@@ -101,6 +103,10 @@ export async function compareItems(
           break;
         case 'b2b.ixora-auto':
           ixoraPrice = entry;
+          allPrices.push(entry);
+          break;
+        case 'udtTechnika':
+          udtTechnikaPrice = entry;
           allPrices.push(entry);
           break;
         // ------------------------------------
@@ -173,8 +179,8 @@ export async function compareItems(
       pcagroup: pcagroupPrice.price,
       // 'spb.camsparts': 0,
       'spb.camsparts': camspartsPrice.price,
-      // shtern: 0,
-      shtern: shtrenPrice.price,
+      shtern: 0,
+      // shtern: shtrenPrice.price,
       // recamgr: 0,
       recamgr: recamgrPrice.price,
       // 'istk-deutz': 0,
@@ -183,6 +189,8 @@ export async function compareItems(
       intertrek: intertrekPrice.price,
       // 'b2b.ixora-auto': 0,
       'b2b.ixora-auto': ixoraPrice.price,
+      // "udtTechnika": 0,
+      udtTechnika: udtTechnikaPrice.price,
       voltag: 0,
       // voltag: voltagPrice.price,
       'dv-pt': 0,

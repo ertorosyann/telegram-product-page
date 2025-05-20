@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Context, ScrapedProduct } from 'src/types/context.interface';
 import { scrapeAll } from '../scraper';
 import { Message } from 'telegraf/typings/core/types/typegram';
+import { getMainMenuKeyboard } from '../utils/manu';
+import { normalizeInput } from '../utils/validator';
 
 @Injectable()
 export class TextHandler {
@@ -20,8 +22,10 @@ export class TextHandler {
       //   return;
       // }
 
-      await ctx.reply('✅ Your request has been successfully processed!');
-      const [nameItem] = textMessage.split(',');
+      await ctx.reply(
+        '🔄 Запрос принят! Ищем информацию, пожалуйста, подождите...',
+      );
+      let [nameItem] = textMessage.split(',');
       if (!nameItem) {
         await ctx.reply(
           '❌ Неверный формат данных. Пожалуйста, укажите номер детали, количество и бренд через запятую.',
@@ -29,31 +33,16 @@ export class TextHandler {
         return;
       }
 
+      nameItem = normalizeInput(nameItem);
+
       try {
         /* ─────────────── изменено: now scrapeAll returns ScrapedProduct[] ─────────────── */
         const products: ScrapedProduct[] = await scrapeAll(nameItem.trim());
         /* ──────────────────────────────────────────────────────────────────────────────── */
 
-        // Берём только успешно выполненные
-        // const fulfilledProducts: ScrapedProduct[] = settled
-        //   .filter(
-        //     (r): r is PromiseFulfilledResult<ScrapedProduct> =>
-        //       r.status === 'fulfilled',
-        //   )
-        //   .map((r) => r.value);
-
-        // Можно также залогировать ошибки:
-        // settled
-        //   .filter((r) => r.status === 'rejected')
-        //   .forEach((r) => console.warn('🛑 Scraper error:', r.reason));
-
-        /* ─────────────── используем products напрямую ─────────────── */
         const msg = formatResults(products);
-        /* ───────────────────────────────────────────────────────────── */
 
-        await ctx.reply(msg || '❌ Ничего не найдено.', {
-          parse_mode: 'Markdown',
-        });
+        await ctx.reply(msg);
       } catch (error) {
         console.error('Ошибка при запросе цены и наличия:', error);
         await ctx.reply(
@@ -62,30 +51,29 @@ export class TextHandler {
       }
 
       ctx.session.step = undefined;
+      await ctx.reply('👇 Выберите, что хотите сделать дальше:', {
+        parse_mode: 'MarkdownV2',
+        ...getMainMenuKeyboard(),
+      });
     }
   }
 }
 
 // util/format-result.ts
-export function formatResults(results: ScrapedProduct[]): string {
+function formatResults(results: ScrapedProduct[]): string {
   if (!results.length) {
     return '❌ Ничего не найдено.';
   }
 
-  return results
-    .map((r) => {
-      // console.log(r);
+  const validResults = results
+    .filter((result) => result.found && result.price)
+    .sort((a, b) => a.price - b.price);
 
-      const status = r.found ? '✅ Найдено' : '❌ Не найдено';
-      const priceLine = r.found ? `💰 Цена: *${r.price}₽*` : '';
-      return [
-        `🏬 Магазин: *${r.shop}*`,
-        `🔧 Деталь: _${r.name}_`,
-        status,
-        priceLine,
-      ]
-        .filter(Boolean) // убираем пустые строки, если found = false
-        .join('\n');
-    })
-    .join('\n\n'); // пустая строка между позициями
+  if (!validResults.length) {
+    return '❌ Ничего не найдено.';
+  }
+
+  const best = validResults[0];
+
+  return `✅ *Лучшая цена найдена!*\n\n🏬 Магазин: *${best.shop}*\n🔧 Деталь: _${best.name}_\n💰 Цена: *${best.price}*`;
 }

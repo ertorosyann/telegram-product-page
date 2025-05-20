@@ -1,45 +1,35 @@
-export function validatePartInfo(input: string) {
-  const [catalogNumber, quantity, brand] = input.split(',');
+export function normalizeInput(input: string): string {
+  const map: Record<string, string> = {
+    А: 'A',
+    В: 'B',
+    Е: 'E',
+    К: 'K',
+    М: 'M',
+    Н: 'H',
+    О: 'O',
+    Р: 'P',
+    С: 'C',
+    Т: 'T',
+    У: 'Y',
+    Х: 'X',
+    а: 'A',
+    в: 'B',
+    е: 'E',
+    к: 'K',
+    м: 'M',
+    н: 'H',
+    о: 'O',
+    р: 'P',
+    с: 'C',
+    т: 'T',
+    у: 'Y',
+    х: 'X',
+  };
 
-  if (!catalogNumber || !quantity || !brand) {
-    return {
-      isValid: false,
-      errorMessage:
-        '❌ Please provide all three pieces of information: catalog number, quantity, and brand.',
-    };
-  }
-
-  if (!/^[A-Za-z0-9]+$/.test(catalogNumber)) {
-    return {
-      isValid: false,
-      errorMessage:
-        '❌ Invalid catalog number. It should only contain letters and digits.',
-    };
-  }
-
-  if (isNaN(Number(quantity))) {
-    return {
-      isValid: false,
-      errorMessage: '❌ Invalid quantity. It must be a number.',
-    };
-  }
-
-  const validBrands = [
-    'CAT',
-    'Cummins',
-    'Deutz',
-    'John Deere',
-    'Perkins',
-    'Volvo',
-    'Komatsu',
-    'Scania',
-  ];
-  if (!validBrands.includes(brand.trim())) {
-    return {
-      isValid: false,
-      errorMessage: `❌ Invalid brand. Use one of: ${validBrands.join(', ')}.`,
-    };
-  }
-
-  return { isValid: true, errorMessage: '' };
+  return input
+    .split('')
+    .map((char) => map[char] || char)
+    .join('')
+    .toUpperCase()
+    .trim();
 }

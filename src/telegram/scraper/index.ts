@@ -6,12 +6,13 @@ import { scrape74Parts } from './sites/74parts'; // done 100% ++++++++++++++++++
 import { scrapeImpart } from './sites/impart'; // done 100% ++++++++++++++++++
 import { scrapePcaGroup } from './sites/pcagroup'; // done 100% ++++++++++++++++++
 import { scrapeCamsParts } from './sites/camsparts'; // done 100% ++++++++++++++++++
-import { scrapeShtren } from './sites/shtren'; // done 100% ++++++++++++++++++   miqich dandaxacnuma
 import { scrapeRecamgr } from './sites/recamgr'; // done 100% ++++++++++++++++++  38872,86 misht esa het tali wonor
 import { scrapeIstkDeutz } from './sites/istk-deutz'; // done 100% ++++++++++++++++++
 import { intertrek } from './sites/intertrek.info'; // done 100% ++++++++++++++++++
 import { scrapeIxora } from './sites/ixora'; // done 100% ++++++++++++++++++  hamapatasxanox brand chka
+import { udtTechnika } from './sites/udt-technika';
 
+// import { scrapeShtren } from './sites/shtren'; // done 100% ++++++++++++++++++   miqich dandaxacnuma
 // import { scrapeMirDiesel } from './sites/mirdiesel'; // not work
 // import { scrapeDvPt } from './sites/dv-pt'; // piti nayvi mejy  if (label === 'Бренд:') { ban ka grac u misht chi gtnum artikul - WA100M-8
 // import { scrapeVoltag } from './sites/voltag'; // mihat mer brendin hamapatasxanox artikulov kporces
@@ -30,11 +31,12 @@ const scrapers = [
   { name: 'Impart', fn: scrapeImpart },
   { name: 'Pcagroup', fn: scrapePcaGroup },
   { name: 'Spb.camsparts', fn: scrapeCamsParts },
-  { name: 'Shtren', fn: scrapeShtren },
+  // { name: 'Shtren', fn: scrapeShtren },
   { name: 'Recamgr', fn: scrapeRecamgr },
   { name: 'istk-deutz', fn: scrapeIstkDeutz },
   { name: 'Intertrek.info', fn: intertrek },
   { name: 'b2b.ixora-auto', fn: scrapeIxora },
+  { udtTechnika: 'udtTechnika', fn: udtTechnika },
 
   // { name: 'Mirdiesel', fn: scrapeMirDiesel },
   // { name: 'Dv-Pt', fn: scrapeDvPt },

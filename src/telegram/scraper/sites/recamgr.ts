@@ -12,7 +12,6 @@ export async function scrapeRecamgr(name: string): Promise<ScrapedProduct> {
   const result: ScrapedProduct = {
     shop: SOURCE_WEBPAGE_KEYS.recamgr,
     found: false,
-    price: BASICS.zero,
   };
   try {
     const searchUrl = `${SOURCE_URLS.recamgr}${encodeURIComponent(name)}`;
@@ -25,11 +24,10 @@ export async function scrapeRecamgr(name: string): Promise<ScrapedProduct> {
 
     const $ = cheerio.load(response.data);
 
+    const check = $('h1.section__title').text().trim();
+    if (!check) return result;
     const product = $('.goods__item').first(); // Первый товар в списке
-
-    if (!product.length) {
-      return result;
-    }
+    if (!product.length) return result;
 
     const title = product.find(' .lnk').text().trim() || 'Без названия';
     const matchBrand = BRANDS.find((brand) =>

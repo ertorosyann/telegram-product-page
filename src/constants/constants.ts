@@ -25,6 +25,7 @@ export const SOURCE_URLS = {
   istk: 'https://istk-deutz.ru/', // +
   truckmir: 'https://truckmir.ru/', //-
   mirdiesel: 'http://mirdiesel.ru/',
+  udtTechnika: 'https://www.udt-technika.ru/',
 
   kta50: 'https://kta50.ru/catalog/', //-
   solid: 'https://solid-t.ru/catalog/', //-
@@ -56,4 +57,5 @@ export const SOURCE_WEBPAGE_KEYS = {
   istk: 'istk-deutz',
   mirdiesel: 'mirdiesel',
   shtern: 'shtern',
+  udtTechnika: 'udtTechnika',
 };

@@ -42,18 +42,26 @@ export class TelegramService {
 
   @On('document')
   async onDocument(@Ctx() ctx: Context) {
-    if (ctx.session.step !== 'document') {
-      await ctx.reply('Пожалуйста, отправляй только текстовое сообщение.');
+    if (ctx.session.step === 'document') {
+      await this.documentHandler.handle(ctx);
+    } else {
+      await ctx.reply(
+        '❗ Пожалуйста, сначала выберите "📂 Загрузить файл" в меню ниже.',
+      );
+      await this.startHandler.handle(ctx); // повторно показываем меню
     }
-    await this.documentHandler.handle(ctx);
   }
 
   @On('text')
   async onText(@Ctx() ctx: Context) {
-    if (ctx.session.step !== 'single_part_request') {
-      await ctx.reply('❌ Пожалуйста, отправьте Excel-файл.');
+    if (ctx.session.step === 'single_part_request') {
+      await this.textHandler.handle(ctx); // обрабатываем ввод
+    } else {
+      await ctx.reply(
+        '❗ Пожалуйста, сначала выберите "📝 Запрос одной запчасти" в меню ниже.',
+      );
+      await this.startHandler.handle(ctx); // повторно показываем меню
     }
-    await this.textHandler.handle(ctx);
   }
 
   // Обработчик для кнопки '📝 Single Part'

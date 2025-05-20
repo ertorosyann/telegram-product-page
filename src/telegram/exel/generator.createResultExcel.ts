@@ -30,6 +30,7 @@ export function createResultExcelBuffer(rows: ResultRow[]): Buffer {
     'istk-deutz',
     'mirdiesel',
     'shtern',
+    'udtTechnika',
   ];
 
   const data = rows.map((row) => [
@@ -59,6 +60,7 @@ export function createResultExcelBuffer(rows: ResultRow[]): Buffer {
     row['istk-deutz'],
     row.mirdiesel,
     row.shtern,
+    row.udtTechnika,
   ]);
 
   const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);

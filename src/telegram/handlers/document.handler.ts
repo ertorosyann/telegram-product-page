@@ -5,6 +5,7 @@ import { parseExcelFromTelegram, readLocalExcel } from '../exel/parse.and.read';
 import { compareItems } from '../exel/comparator.exelFiles';
 import { createResultExcelBuffer } from '../exel/generator.createResultExcel';
 import { InputExelFile, ParsedRow } from '../exel/exel.types';
+import { getMainMenuKeyboard } from '../utils/manu';
 
 @Injectable()
 export class DocumentHandler {
@@ -37,13 +38,14 @@ export class DocumentHandler {
         '/Users/picsartacademy/Desktop/sklad2.xlsx',
       );
 
+      await ctx.reply(
+        '🌐 Идёт поиск по сайтам поставщиков. Пожалуйста, подождите...',
+      );
       const { messages, rows } = await compareItems(inputItems, skladItems);
 
       const resultBuffer = createResultExcelBuffer(rows);
 
       for (const msg of messages) await ctx.reply(msg);
-
-      await ctx.reply('Файл сформирован, отправляю…');
 
       await ctx.replyWithDocument({
         source: resultBuffer,
@@ -51,6 +53,10 @@ export class DocumentHandler {
       });
 
       ctx.session.step = undefined;
+      await ctx.reply('👇 Выберите, что хотите сделать дальше:', {
+        parse_mode: 'MarkdownV2',
+        ...getMainMenuKeyboard(),
+      });
     } catch (err) {
       console.error('Ошибка при обработке Excel:', err);
       await ctx.reply('❌ Не удалось обработать файл.');

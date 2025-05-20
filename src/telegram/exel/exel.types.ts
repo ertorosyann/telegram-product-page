@@ -38,4 +38,5 @@ export type ResultRow = {
   'istk-deutz': number;
   mirdiesel: number;
   shtern: number;
+  udtTechnika: number;
 };
