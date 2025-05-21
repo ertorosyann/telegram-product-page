@@ -7,7 +7,7 @@ import { UsersService } from '../authorization/users.service';
 @Injectable()
 export class StartHandler {
   private readonly templateLink = process.env.YANDEX_LINK || '';
-  private readonly adminUsername = 'Romiksar';
+  private readonly adminUsername = 'torosyann1';
 
   constructor(private readonly userService: UsersService) {}
   async handle(ctx: Context) {
@@ -33,12 +33,13 @@ export class StartHandler {
       [Markup.button.callback('📂 Загрузить файл', 'document')],
     ];
     const isAdmin = await this.userService.isAdmin(ctx.from?.username || '');
+
     if (isAdmin) {
-      buttons.push([
-        Markup.button.callback('➕ Добавить пользователя', 'add_user'),
-        Markup.button.callback('➕ Видеть пользователя', 'all_users'),
-        Markup.button.callback('➕ Удалить пользователя', 'delete_user'),
-      ]);
+      buttons.push(
+        [Markup.button.callback('➕ Добавить пользователя', 'add_user')],
+        [Markup.button.callback('👁️ Видеть пользователя', 'all_users')],
+        [Markup.button.callback('❌ Удалить пользователя', 'delete_user')],
+      );
     } else {
       const isAllowed = await this.userService.isUserAllowed(telegramUsername);
 
@@ -47,10 +48,14 @@ export class StartHandler {
         return;
       }
     }
+    const x = await getMainMenuKeyboard(
+      ctx.from?.username || '',
+      this.userService,
+    );
 
     await ctx.reply(text, {
       parse_mode: 'MarkdownV2',
-      ...getMainMenuKeyboard(),
+      ...x,
       ...Markup.inlineKeyboard(buttons),
     });
   }

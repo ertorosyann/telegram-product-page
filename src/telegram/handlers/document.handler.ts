@@ -6,9 +6,12 @@ import { compareItems } from '../exel/comparator.exelFiles';
 import { createResultExcelBuffer } from '../exel/generator.createResultExcel';
 import { InputExelFile, ParsedRow } from '../exel/exel.types';
 import { getMainMenuKeyboard } from '../utils/manu';
+import { UsersService } from '../authorization/users.service';
 
 @Injectable()
 export class DocumentHandler {
+  constructor(private readonly userService: UsersService) {}
+
   async handle(ctx: Context) {
     const message = ctx.message;
     if (!message || !('document' in message)) {
@@ -53,9 +56,15 @@ export class DocumentHandler {
       });
 
       ctx.session.step = undefined;
+      const x = await getMainMenuKeyboard(
+        ctx.from?.username || '',
+        this.userService,
+      );
+      // console.log(x);
+
       await ctx.reply('👇 Выберите, что хотите сделать дальше:', {
         parse_mode: 'MarkdownV2',
-        ...getMainMenuKeyboard(),
+        ...x,
       });
     } catch (err) {
       console.error('Ошибка при обработке Excel:', err);

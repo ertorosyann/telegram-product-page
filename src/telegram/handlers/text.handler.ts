@@ -53,11 +53,14 @@ export class TextHandler {
           '❌ Произошла ошибка при получении информации о товаре. Попробуйте снова позже.',
         );
       }
-
+      const x = await getMainMenuKeyboard(
+        ctx.from?.username || '',
+        this.usersService,
+      );
       ctx.session.step = undefined;
       await ctx.reply('👇 Выберите, что хотите сделать дальше:', {
         parse_mode: 'MarkdownV2',
-        ...getMainMenuKeyboard(),
+        ...x,
       });
     } else if (ctx.session.step === 'add_user') {
       //when admin type username after click add user this function caled

@@ -175,7 +175,7 @@ export async function compareItems(
         bestPrice = firstNonZero ?? sorted[0];
         totalPrice = bestPrice.price * inputQty;
       }
-      console.log('Best Price = ', bestPrice.price, bestPrice.shopName);
+      // console.log('Best Price = ', bestPrice.price, bestPrice.shopName);
 
       // const sorted = allPrices.slice().sort((a, b) => a.price - b.price);
       // const firstNonZero = sorted.find((p) => p.price > 0);
@@ -239,8 +239,8 @@ export async function compareItems(
         truckmir: 0,
         'solid-t': 0,
       });
-    } catch (error: any) {
-      messages.push(`❌ Ошибка при поиске ${partNumber}: ${error.message}`);
+    } catch {
+      // messages.push(`❌ Ошибка при поиске ${partNumber}: ${error.message}`);
       notFound.push(partNumber);
     } finally {
       running--;
