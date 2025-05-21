@@ -43,7 +43,6 @@ export async function scrapeIMachinery(
         return false; // break .each
       }
     });
-    console.log(result);
 
     return result;
   } catch (error: unknown) {

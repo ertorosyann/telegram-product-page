@@ -44,7 +44,6 @@ export async function compareItems(
     /* ------------------------------- скрапинг ------------------------------- */
 
     const resultFromScrap = await scrapeAll(String(partNumber).trim());
-    console.log(resultFromScrap);
 
     const allPrices: PriceInfo[] = [{ price: priceSklad, shopName: 'sklad' }];
 
@@ -148,7 +147,6 @@ export async function compareItems(
       bestPrice = firstNonZero ?? sorted[0];
       totalPrice = bestPrice.price * inputQty;
     }
-    console.log('Best Price = ', bestPrice.price, bestPrice.shopName);
 
     /* --------------------------- формируем вывод --------------------------- */
     if (bestPrice.price === 0) {

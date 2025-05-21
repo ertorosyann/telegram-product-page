@@ -56,12 +56,7 @@ export async function scrapePcaGroup(name: string): Promise<ScrapedProduct> {
         found: false,
       };
     }
-    console.log(
-      'finded price ',
-      priceText,
-      'nan check  = ',
-      !isNaN(+priceText),
-    );
+
     const price = !isNaN(+priceText) ? priceText : BASICS.zero;
     return {
       shop: SOURCE_WEBPAGE_KEYS.pcagroup,

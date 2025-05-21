@@ -8,7 +8,7 @@ import { UsersService } from '../authorization/users.service';
 
 @Injectable()
 export class TextHandler {
-  constructor(private readonly userService: UsersService) {} // ԱՅՍՏԵՂ ԱՎԵԼԱՑՐԵԼ
+  constructor(private readonly usersService: UsersService) {} // ԱՅՍՏԵՂ ԱՎԵԼԱՑՐԵԼ
 
   async handle(ctx: Context) {
     if (ctx.session.step === 'single_part_request') {
@@ -59,7 +59,9 @@ export class TextHandler {
         ...getMainMenuKeyboard(),
       });
     } else if (ctx.session.step === 'add_user') {
+      //when admin type username after click add user this function caled
       const message = ctx.message as Message.TextMessage;
+
       const textMessage = message?.text?.trim();
 
       if (!textMessage) {
@@ -67,14 +69,22 @@ export class TextHandler {
         return;
       }
 
-      const telegramId = Number(textMessage);
-      if (isNaN(telegramId)) {
-        await ctx.reply('❌ ID должен быть числом.');
+      await this.usersService.addUser({ telegramUsername: textMessage });
+      await ctx.reply('✅ Пользователь добавлен в базу данных.');
+      ctx.session.step = undefined;
+    } else if (ctx.session.step === 'delete_user') {
+      const message = ctx.message as Message.TextMessage;
+
+      const textMessage = message?.text?.trim();
+
+      if (!textMessage) {
+        await ctx.reply('❌ Пожалуйста, введите ID пользователя.');
         return;
       }
-
-      await this.userService.addUser({ telegramId });
-      await ctx.reply('✅ Пользователь добавлен в базу данных.');
+      const resultOfDelate = await this.usersService.deleteUser({
+        telegramUsername: textMessage,
+      });
+      await ctx.reply(resultOfDelate);
       ctx.session.step = undefined;
     }
   }

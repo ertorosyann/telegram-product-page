@@ -49,7 +49,6 @@ export async function scrape74Parts(
       BASICS.empotyString, // ← 2‑й внешний аргумент
     );
 
-    // console.log(result);
 
     await browser.close();
     return result;

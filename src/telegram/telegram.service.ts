@@ -17,6 +17,7 @@ import { YandexDiskService } from '../yandex/yandex-disk.service';
 import { HttpService } from '@nestjs/axios';
 import { DocumentHandler } from './handlers/document.handler';
 import { UsersService } from './authorization/users.service';
+import { UserHandler } from './handlers/user.handleer';
 
 @Injectable()
 @Update()
@@ -29,6 +30,8 @@ export class TelegramService {
     private readonly textHandler: TextHandler,
     private readonly helpHandler: HelpHandler,
     private readonly documentHandler: DocumentHandler,
+    private readonly userHandler: UserHandler,
+
     private readonly usersService: UsersService, // ✅ inject it
   ) {}
 
@@ -58,13 +61,22 @@ export class TelegramService {
   async onText(@Ctx() ctx: Context) {
     if (
       ctx.session.step === 'single_part_request' ||
-      ctx.session.step === 'add_user'
+      ctx.session.step === 'add_user' ||
+      ctx.session.step === 'delete_user'
     ) {
       await this.textHandler.handle(ctx); // обрабатываем ввод
     } else {
-      await ctx.reply(
-        '❗ Пожалуйста, сначала выберите "📝 Запрос одной запчасти" в меню ниже.',
-      );
+
+      const isAdmin = await this.usersService.isAdmin(ctx.from?.username || '');
+      if (isAdmin) {
+        await ctx.reply(
+          '❗ Пожалуйста, сначала выберите любую кнопку из меню ниже.',
+        );
+      } else {
+        await ctx.reply(
+          '❗ Пожалуйста, сначала выберите "📝 Запрос одной запчасти" в меню ниже.',
+        );
+      }
       await this.startHandler.handle(ctx); // повторно показываем меню
     }
   }
@@ -76,11 +88,24 @@ export class TelegramService {
     await ctx.answerCbQuery(); // Убираем "loading" у кнопки
     await ctx.reply('Введите номер детали для поиска:');
   }
+  //afetr admin click on add user this fucntion is trigre
   @Action('add_user')
-  async addUser(@Ctx() ctx: Context) {
+  async onAddUser(@Ctx() ctx: Context) {
     ctx.session.step = 'add_user';
     await ctx.answerCbQuery();
     await ctx.reply('Пожалуйста, введите ID пользователя.');
+  }
+  @Action('delete_user')
+  async onDeleteUser(@Ctx() ctx: Context) {
+
+    ctx.session.step = 'delete_user';
+
+    await ctx.answerCbQuery();
+    await ctx.reply('Пожалуйста, введите ID пользователя.');
+  }
+  @Action('all_users')
+  async onAllUsers(@Ctx() ctx: Context) {
+    await this.userHandler.handle(ctx);
   }
 
   // Обработчик для кнопки '📂 Upload File'

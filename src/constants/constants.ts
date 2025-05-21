@@ -7,7 +7,6 @@ export const BRANDS = [
   'Volvo',
   'Komatsu',
   'Scania',
-  'KRAUF',
 ];
 export const SOURCE_URLS = {
   udtTechnika: 'https://www.udt-technika.ru/',

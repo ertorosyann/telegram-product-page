@@ -13,7 +13,6 @@ export async function scrapeZiptehOnline(productCode: string): Promise<string> {
     if (!firstProductAnchor.length) {
       return `❌ Product "${productCode}" not found.`;
     }
-    console.log('stea');
 
     const relativeLink = firstProductAnchor.attr('href');
     if (!relativeLink) {
@@ -34,9 +33,6 @@ export async function scrapeZiptehOnline(productCode: string): Promise<string> {
     if (!productName || !priceText) {
       return `⚠️ Info not found for product "${productCode}".`;
     }
-    console.log(
-      `🔍 Product: ${productCode}\n📦 Name: ${productName}\n💰 Price: ${priceText}`,
-    );
 
     return `🔍 Product: ${productCode}\n📦 Name: ${productName}\n💰 Price: ${priceText}`;
   } catch (error: unknown) {

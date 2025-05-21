@@ -21,7 +21,6 @@ export async function scrapeVoltag(productNumber: string) {
       (el) => el.href,
     );
 
-    console.log('✅ Product URL:', productUrl);
 
     await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
 
@@ -57,7 +56,6 @@ export async function scrapeVoltag(productNumber: string) {
     await browser.close();
 
     if (matchedProduct) {
-      console.log('✅ Found matching product:', matchedProduct);
       return {
         shop: 'voltag',
         found: true,

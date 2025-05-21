@@ -3,10 +3,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schema/schema';
+
 export interface IUser extends Document {
-  telegramId: number;
+  telegramUsername: string;
   role?: string;
 }
+
 @Injectable()
 @Injectable()
 export class UsersService {
@@ -14,22 +16,44 @@ export class UsersService {
     @InjectModel(User.name) private userModel: Model<IUser>, // typed Model<IUser>
   ) {}
 
-  async addUser(data: { telegramId: number }): Promise<IUser> {
+  async addUser(data: { telegramUsername: string }): Promise<IUser> {
     const exists = await this.userModel
-      .findOne({ telegramId: data.telegramId })
+      .findOne({ telegramUsername: data.telegramUsername })
       .exec();
 
     if (exists) return exists;
 
     const createdUser = new this.userModel(data);
+
     return createdUser.save(); // save() returns a Promise<IUser>
   }
-  async isAdmin(telegramId: number): Promise<boolean> {
-    const user = await this.userModel.findOne({ telegramId });
-    return user?.role === 'admin';
+  async deleteUser(data: { telegramUsername: string }): Promise<string> {
+    const user = await this.userModel
+      .findOne({ telegramUsername: data.telegramUsername })
+      .exec();
+
+    if (!user) {
+      return 'Пользователь не найден'; // User not found
+    }
+
+    await this.userModel.deleteOne({ telegramUsername: data.telegramUsername });
+    return 'Пользователь удален';
   }
-  async isUserAllowed(telegramId: number): Promise<boolean> {
-    const user = await this.userModel.findOne({ telegramId });
+  async isAdmin(telegramUsername: string): Promise<boolean> {
+    const user = await this.userModel.findOne({ telegramUsername });
+    return user?.role === 'admin' || user?.role === 'Romiksar';
+  }
+  async isUserAllowed(telegramUsername: string): Promise<boolean> {
+    const user = await this.userModel.findOne({ telegramUsername });
+
     return !!user;
+  }
+  // user.service.ts
+  async getAllUsers(): Promise<
+    { telegramUsername: string; username?: string }[]
+  > {
+    return this.userModel
+      .find({}, { telegramUsername: 1, username: 1, _id: 0 })
+      .lean();
   }
 }

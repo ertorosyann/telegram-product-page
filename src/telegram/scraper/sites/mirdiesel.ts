@@ -37,7 +37,6 @@ export async function scrapeMirDiesel(name: string): Promise<ScrapedProduct> {
 
     const productUrl = `${SOURCE_URLS.mirdiesel.replace(/\/$/, '')}${productLink}`;
 
-    console.log(productUrl);
 
     // Load product page
     const productResponse = await axios.get(productUrl, {
@@ -46,7 +45,6 @@ export async function scrapeMirDiesel(name: string): Promise<ScrapedProduct> {
     const $ = cheerio.load(productResponse.data);
 
     const priceBlockText = $('div[class*="price"]').first().text().trim();
-    console.log(priceBlockText, 'price');
 
     const priceMatch = priceBlockText.match(/(\d[\d\s]*)\s*₽/);
     const parsedPriceText = priceMatch

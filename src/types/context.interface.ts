@@ -1,7 +1,13 @@
 import { Context as TelegrafContext } from 'telegraf';
 
 export interface Session {
-  step?: 'single_part_request' | 'document' | 'add_user' | null;
+  step?:
+    | 'single_part_request'
+    | 'document'
+    | 'add_user'
+    | 'all_users'
+    | 'delete_user'
+    | null;
 }
 
 export interface Context extends TelegrafContext {

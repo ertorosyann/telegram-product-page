@@ -11,6 +11,7 @@ import { DocumentHandler } from './handlers/document.handler';
 import { UsersService } from './authorization/users.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './authorization/schema/schema';
+import { UserHandler } from './handlers/user.handleer';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { User, UserSchema } from './authorization/schema/schema';
     TextHandler,
     DocumentHandler,
     YandexDiskService,
+    UserHandler,
     UsersService,
   ],
 })

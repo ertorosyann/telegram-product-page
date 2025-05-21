@@ -7,7 +7,7 @@ export type UserDocument = User & Document;
 @Schema()
 export class User {
   @Prop({ required: true, unique: true })
-  telegramId: number;
+  telegramUsername: string;
 
   @Prop({ default: 'user' })
   role: 'user' | 'admin';

@@ -66,7 +66,6 @@ export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
 
     const res = await page.evaluate(() => {
       const title = document.querySelector('h1')?.textContent?.trim() || '';
-      console.log(title);
 
       const priceText =
         document.querySelector('.price')?.textContent?.trim() ||
