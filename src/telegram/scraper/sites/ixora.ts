@@ -11,7 +11,7 @@ export async function scrapeIxora(
 ): Promise<ScrapedProduct> {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-  const result: ScrapedProduct = {
+  let result: ScrapedProduct = {
     found: false,
     shop: SOURCE_WEBPAGE_KEYS.ixora,
   };
@@ -28,7 +28,7 @@ export async function scrapeIxora(
     // wating result
     await page.waitForSelector('.SearchResultTableRetail', { timeout: 15000 });
 
-    const resultEvaluate = await page.evaluate(
+    result = await page.evaluate(
       (productNumber, BRANDS) => {
         const item = document.querySelector('.SearchResultTableRetail');
         if (!item) return { shop: 'ixora', found: false };
@@ -65,13 +65,12 @@ export async function scrapeIxora(
       BRANDS,
     );
 
-    Object.assign(result, resultEvaluate);
+    // Object.assign(result, resultEvaluate);
 
     await browser.close();
     return result;
-  } catch (error: any) {
+  } catch {
     await browser.close();
-    console.error(`${SOURCE_WEBPAGE_KEYS.ixora} Error:`, error);
     return { shop: SOURCE_WEBPAGE_KEYS.ixora, found: false };
   }
 }

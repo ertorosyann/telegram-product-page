@@ -35,7 +35,7 @@ export class DocumentHandler {
       }
 
       const skladItems: ParsedRow[] = readLocalExcel(
-        '/Users/romiksargsayn/Desktop/sklad2.xlsx',
+        '/Users/picsartacademy/Desktop/sklad2.xlsx',
       );
 
       await ctx.reply(

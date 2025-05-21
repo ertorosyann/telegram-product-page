@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TelegrafModule } from 'nestjs-telegraf';
-import { session } from 'telegraf'; // ✅ import session middleware
+import { session } from 'telegraf';
 import { TelegramService } from './telegram.service';
 import { YandexDiskService } from '../yandex/yandex-disk.service';
 import { HttpModule } from '@nestjs/axios';
@@ -17,7 +17,7 @@ import { UserHandler } from './handlers/user.handleer';
   imports: [
     TelegrafModule.forRootAsync({
       useFactory: () => ({
-        token: '8044191482:AAFNH5xxTVwsPsCByJI86MZ5w0R0Pmc6Jv4', // ✅ use env later
+        token: '7559322394:AAHHLZ08o2aK7wD6gctr5RTtDEvdrsFx0HU',
         middlewares: [session()],
       }),
     }),

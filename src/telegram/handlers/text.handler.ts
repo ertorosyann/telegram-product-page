@@ -41,6 +41,7 @@ export class TextHandler {
       try {
         /* ─────────────── изменено: now scrapeAll returns ScrapedProduct[] ─────────────── */
         const products: ScrapedProduct[] = await scrapeAll(nameItem.trim());
+
         /* ──────────────────────────────────────────────────────────────────────────────── */
 
         const msg = formatResults(products);

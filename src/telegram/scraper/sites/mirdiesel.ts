@@ -4,21 +4,18 @@ import {
   SOURCE_URLS,
   SOURCE_WEBPAGE_KEYS,
   BRANDS,
-  BASICS,
 } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeMirDiesel(name: string): Promise<ScrapedProduct> {
   const result: ScrapedProduct = {
-    name: BASICS.empotyString,
-    price: BASICS.zero,
     found: false,
     shop: SOURCE_WEBPAGE_KEYS.mirdiesel,
-    brand: BASICS.empotyString,
   };
 
   try {
     const searchQuery = name.trim().replace(/\s+/g, '+');
+    // const searchUrl = `${SOURCE_URLS.mirdiesel}catalog/?q=${searchQuery}&s=Найти`;
     const searchUrl = `${SOURCE_URLS.mirdiesel}catalog/?q=${searchQuery}`;
 
     const searchResponse = await axios.get(searchUrl, {
@@ -27,7 +24,7 @@ export async function scrapeMirDiesel(name: string): Promise<ScrapedProduct> {
     const $search = cheerio.load(searchResponse.data);
 
     // Get product link from search results
-    const productLink = $search('table.list_item')
+    const productLink = $search('.list_item')
       .first()
       .find('a.thumb')
       .attr('href');
@@ -37,15 +34,13 @@ export async function scrapeMirDiesel(name: string): Promise<ScrapedProduct> {
 
     const productUrl = `${SOURCE_URLS.mirdiesel.replace(/\/$/, '')}${productLink}`;
 
-
     // Load product page
     const productResponse = await axios.get(productUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0' },
     });
     const $ = cheerio.load(productResponse.data);
 
-    const priceBlockText = $('div[class*="price"]').first().text().trim();
-
+    const priceBlockText = $('span[class*="price"]').first().text().trim();
     const priceMatch = priceBlockText.match(/(\d[\d\s]*)\s*₽/);
     const parsedPriceText = priceMatch
       ? priceMatch[1].replace(/\s/g, '')
@@ -53,23 +48,22 @@ export async function scrapeMirDiesel(name: string): Promise<ScrapedProduct> {
 
     let foundBrands = false;
     $('ul[id^="bx_"][id*="_prop_490_list"] li').each((_, el) => {
-      const brandText: string = $(el).find('span.cnt').text().trim();
+      const brandText = $(el).find('span.cnt').text().trim();
 
       if (BRANDS.includes(brandText)) {
         foundBrands = true;
-        result.brand = brandText;
       }
     });
 
     const title = $('#pagetitle').text().trim();
-    const russianWords =
-      title.match(/[А-Яа-яЁё]+/g)?.join() || BASICS.empotyString;
 
     if (foundBrands) {
-      result.name = russianWords;
-      result.found = true;
-      result.price = parsedPriceText;
-      result.shop = SOURCE_WEBPAGE_KEYS.mirdiesel;
+      return {
+        name: title,
+        price: parsedPriceText,
+        found: true,
+        shop: SOURCE_WEBPAGE_KEYS.mirdiesel,
+      };
     }
 
     return result;

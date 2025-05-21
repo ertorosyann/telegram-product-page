@@ -21,7 +21,6 @@ export async function scrapeVoltag(productNumber: string) {
       (el) => el.href,
     );
 
-
     await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
 
     await page.waitForFunction(

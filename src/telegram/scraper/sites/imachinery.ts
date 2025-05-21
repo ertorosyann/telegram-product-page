@@ -43,7 +43,6 @@ export async function scrapeIMachinery(
         return false; // break .each
       }
     });
-
     return result;
   } catch (error: unknown) {
     console.error(`${SOURCE_WEBPAGE_KEYS.imachinery} Error:`, error);

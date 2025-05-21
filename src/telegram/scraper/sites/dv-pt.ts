@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer';
 import {
-  BASICS,
+  BRANDS,
   SOURCE_URLS,
   SOURCE_WEBPAGE_KEYS,
 } from 'src/constants/constants';
@@ -11,9 +11,7 @@ export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
-  const result: ScrapedProduct = {
-    price: BASICS.zero,
-    name: BASICS.empotyString,
+  let result: ScrapedProduct = {
     found: false,
     shop: SOURCE_WEBPAGE_KEYS.dvpt,
   };
@@ -64,7 +62,7 @@ export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
 
     await page.waitForSelector('h1', { timeout: 10000 });
 
-    const res = await page.evaluate(() => {
+    result = await page.evaluate((BRANDS) => {
       const title = document.querySelector('h1')?.textContent?.trim() || '';
 
       const priceText =
@@ -82,37 +80,29 @@ export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
             searchedProductBrand;
         }
       });
-      const brandMatch = [
-        'CAT',
-        'Cummins',
-        'Deutz',
-        'John Deere',
-        'Perkins',
-        'Volvo',
-        'Komatsu',
-        'Scania',
-      ].find((brand) => searchedProductBrand.toLowerCase().includes(brand));
+      const brandMatch = BRANDS.find((brand) =>
+        searchedProductBrand.toLowerCase().includes(brand),
+      );
       if (!brandMatch) {
         return {
           found: false,
-          name: '',
           shop: 'dvpt',
-          price: '',
         };
       }
+
       return {
         found: true,
         name: title,
         shop: 'dvpt',
         price,
       };
-    });
-    Object.assign(result, res);
+    }, BRANDS);
+
+    // Object.assign(result, res);
     await browser.close();
     return result;
-  } catch (error: unknown) {
+  } catch {
     await browser.close();
-    console.error(`${SOURCE_WEBPAGE_KEYS.dvpt} Error:`, error);
     return { shop: SOURCE_WEBPAGE_KEYS.dvpt, found: false };
   }
 }

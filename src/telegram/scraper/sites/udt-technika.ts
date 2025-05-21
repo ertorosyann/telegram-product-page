@@ -61,12 +61,9 @@ export async function udtTechnika(
       result.price = productRow.price;
       result.found = true;
     }
-
     return result;
-  } catch (error) {
-    console.error(`${SOURCE_WEBPAGE_KEYS.udtTechnika} Error:`, error);
-    return result;
-  } finally {
+  } catch {
     await browser.close();
+    return result;
   }
 }

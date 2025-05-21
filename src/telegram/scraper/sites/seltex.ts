@@ -12,48 +12,39 @@ export async function scrapeSeltex(
   productNumber: string,
 ): Promise<ScrapedProduct> {
   const url = `${SOURCE_URLS.seltex}${productNumber}`;
+  const result: ScrapedProduct = {
+    shop: SOURCE_WEBPAGE_KEYS.seltex,
+    found: false,
+  };
 
   try {
-    const response = await axios.get(url);
-    const $ = cheerio.load(response.data as string);
+    const { data } = await axios.get(url, { timeout: 5000 });
+    const $ = cheerio.load(data);
 
-    //‑‑‑ объект‑ответ по умолчанию
-    const result: ScrapedProduct = {
-      shop: SOURCE_WEBPAGE_KEYS.seltex,
-      found: false,
-    };
+    const row = $('.table tbody tr').eq(1); // 2-я строка
+    if (!row.length) return result;
 
-    /* 1️⃣  Берём ровно вторую строку (индекс 1) из tbody.
-           Если её нет, cheerio вернёт пустой set -> length === 0  */
-    const secondRow = $('.table tbody tr').eq(1);
-    if (secondRow.length === 0) return result; // строки нет → found остаётся false
+    const tds = row.find('td');
+    if (tds.length < 3) return result;
 
-    /* 2️⃣  Парсим ячейки в найденной строке */
-    const tds = secondRow.find('td');
-    if (tds.length < 3) return result; // на всякий случай проверка
+    const nameCell = tds.eq(1);
+    nameCell.find('a').remove();
+    const name = nameCell.text().trim().replace(/\s+/g, ' ');
+    if (!name) return result;
 
-    // убираем <a> из названия
-    tds.eq(1).find('a').remove();
-    const nameText = tds.eq(1).text().trim().replace(/\s+/g, ' ');
-    if (nameText.length === 0) return result;
-
-    // 3️⃣  Проверяем бренд
-    const matchedBrand = BRANDS.find((brand) =>
-      nameText.toLowerCase().includes(brand.toLowerCase()),
+    const brandMatch = BRANDS.find((b) =>
+      name.toLowerCase().includes(b.toLowerCase()),
     );
-    if (!matchedBrand) return result;
+    if (!brandMatch) return result;
 
-    /* 4️⃣  Заполняем результат */
     const rawPrice = tds.eq(2).text().trim();
-    const priceIsNumber = rawPrice !== '' && !isNaN(+rawPrice);
-
-    result.name = nameText;
-    result.price = priceIsNumber ? rawPrice : BASICS.empotyString; // ✔ fixed typo
+    result.name = name;
+    result.price =
+      rawPrice && !isNaN(+rawPrice) ? rawPrice : BASICS.empotyString;
     result.found = true;
 
     return result;
-  } catch (error: unknown) {
-    console.error(`${SOURCE_WEBPAGE_KEYS.seltex} Error:`, error);
-    return { shop: SOURCE_WEBPAGE_KEYS.seltex, found: false };
+  } catch {
+    return result;
   }
 }
