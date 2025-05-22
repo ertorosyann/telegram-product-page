@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import { Page } from 'puppeteer';
 import {
   BASICS,
   BRANDS,
@@ -6,22 +6,39 @@ import {
   SOURCE_WEBPAGE_KEYS,
 } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
-
 export async function scrape74Parts(
   productNumber: string,
+  page: Page,
 ): Promise<ScrapedProduct> {
   const url = `${SOURCE_URLS.parts74}${encodeURIComponent(productNumber)}`;
+  const start = performance.now();
+  console.log(page);
 
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-
+  await page.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  );
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    // Կասեցում ոչ անհրաժեշտ ռեսուրսների բեռնումից
+    await page.setRequestInterception(true);
+    await page.setJavaScriptEnabled(false);
+    page.on('request', (req) => {
+      const resourceType = req.resourceType();
+      if (
+        ['image', 'stylesheet', 'font', 'media', 'xhr', 'fetch'].includes(
+          resourceType,
+        )
+      ) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+    await Promise.all([page.goto(url, { timeout: 15000 })]);
 
     const result: ScrapedProduct = await page.$$eval(
       '.list_item_wrapp:first-of-type',
-      ([item], BRANDS, EMPTY): ScrapedProduct => {
-        if (!item) return { shop: 'parts74', found: false };
+      ([item], BRANDS, EMPTY, PART74): ScrapedProduct => {
+        if (!item) return { shop: PART74, found: false };
 
         const title =
           item
@@ -31,7 +48,7 @@ export async function scrape74Parts(
         const matched = BRANDS.some((b) =>
           title.toLowerCase().includes(b.toLowerCase()),
         );
-        if (!matched) return { shop: 'parts74', found: false };
+        if (!matched) return { shop: PART74, found: false };
 
         const price =
           item
@@ -41,19 +58,18 @@ export async function scrape74Parts(
         return {
           name: title,
           price,
-          shop: 'parts74',
+          shop: PART74,
           found: true,
         };
       },
-      BRANDS, // ← 1‑й внешний аргумент
-      BASICS.empotyString, // ← 2‑й внешний аргумент
+      BRANDS,
+      BASICS.empotyString,
+      SOURCE_WEBPAGE_KEYS.parts74,
     );
 
-
-    await browser.close();
+    console.log(result, `${Math.round(performance.now() - start)}ms`);
     return result;
   } catch (e) {
-    await browser.close();
     console.error(`${SOURCE_WEBPAGE_KEYS.parts74} error:`, e);
     return { shop: SOURCE_WEBPAGE_KEYS.parts74, found: false };
   }

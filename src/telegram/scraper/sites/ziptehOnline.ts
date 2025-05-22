@@ -2,6 +2,8 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 export async function scrapeZiptehOnline(productCode: string): Promise<string> {
+  const start = performance.now();
+
   const searchUrl = ''; // https://zipteh.online/site/login;
   try {
     const searchResponse = await axios.get<string>(searchUrl);

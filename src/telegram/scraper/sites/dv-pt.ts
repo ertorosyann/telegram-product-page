@@ -7,6 +7,7 @@ import {
 import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
+  const start = performance.now();
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -21,6 +22,7 @@ export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
   await page.setUserAgent(
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
   );
+
   await page.setViewport({ width: 1280, height: 800 });
 
   try {
@@ -28,26 +30,23 @@ export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
     });
+    console.log(performance.now() - start);
 
     // Type into the search input
     await page.type('#search_form_input', name);
 
     // Click the search button
     await Promise.all([
-      page.waitForResponse(
-        (response) =>
-          response.url().includes('/search') && response.status() === 200,
-        {
-          timeout: 10000,
-        },
-      ),
-      await page.click('input[type="submit"][title="Искать"]'),
+      page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 10000 }),
+      page.click('input[type="submit"][title="Искать"]'),
     ]);
 
     // Wait for search result (here are products)
-    await page.waitForSelector('.goods', { timeout: 10000 });
+
     // Current product
+
     const productExists = await page.$('.goods a[itemprop="url"]');
+
     if (!productExists) {
       await browser.close();
       return result;
@@ -59,7 +58,6 @@ export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
       page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
       page.click(firstProductLinkSelector),
     ]);
-
     await page.waitForSelector('h1', { timeout: 10000 });
 
     result = await page.evaluate((BRANDS) => {
@@ -81,7 +79,7 @@ export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
         }
       });
       const brandMatch = BRANDS.find((brand) =>
-        searchedProductBrand.toLowerCase().includes(brand),
+        searchedProductBrand.toLowerCase().includes(brand.toLowerCase()),
       );
       if (!brandMatch) {
         return {
@@ -97,12 +95,14 @@ export async function scrapeDvPt(name: string): Promise<ScrapedProduct> {
         price,
       };
     }, BRANDS);
+    console.log(result);
 
     // Object.assign(result, res);
     await browser.close();
     return result;
-  } catch {
+  } catch (error) {
     await browser.close();
+    console.error(`${SOURCE_WEBPAGE_KEYS.dvpt} Error:`, error);
     return { shop: SOURCE_WEBPAGE_KEYS.dvpt, found: false };
   }
 }

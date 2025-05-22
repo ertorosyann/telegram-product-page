@@ -11,6 +11,7 @@ import { ScrapedProduct } from 'src/types/context.interface';
 export async function scrapeSeltex(
   productNumber: string,
 ): Promise<ScrapedProduct> {
+  const start = performance.now();
   const url = `${SOURCE_URLS.seltex}${productNumber}`;
   const result: ScrapedProduct = {
     shop: SOURCE_WEBPAGE_KEYS.seltex,
@@ -42,6 +43,7 @@ export async function scrapeSeltex(
     result.price =
       rawPrice && !isNaN(+rawPrice) ? rawPrice : BASICS.empotyString;
     result.found = true;
+    console.log(performance.now() - start, 'seltex');
 
     return result;
   } catch {

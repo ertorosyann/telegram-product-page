@@ -8,6 +8,8 @@ import {
 } from 'src/constants/constants';
 
 export async function scrapeTruckdrive(name: string): Promise<any> {
+  const start = performance.now();
+
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
   const result: ScrapedProduct = {
@@ -57,7 +59,7 @@ export async function scrapeTruckdrive(name: string): Promise<any> {
 
     return result;
   } catch (error) {
-    console.error(`${SOURCE_WEBPAGE_KEYS.seltex} Error:`, error);
-    return { shop: SOURCE_WEBPAGE_KEYS.recamgr, found: false };
+    console.error(`${SOURCE_WEBPAGE_KEYS.truckdrive} Error:`, error);
+    return { shop: SOURCE_WEBPAGE_KEYS.truckdrive, found: false };
   }
 }

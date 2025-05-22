@@ -10,12 +10,14 @@ import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeCamsParts(name: string): Promise<ScrapedProduct> {
   try {
+    const start = performance.now();
     const searchQuery = name.trim().replace(/\s+/g, '+');
     const searchUrl = `${SOURCE_URLS.camsparts}${searchQuery}`;
 
     const response = await axios.get(searchUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0' },
     });
+    console.log(performance.now() - start);
 
     const $ = cheerio.load(response.data);
     const firstProduct = $('.product__list .product').first();

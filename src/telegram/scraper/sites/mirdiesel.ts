@@ -8,15 +8,17 @@ import {
 import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeMirDiesel(name: string): Promise<ScrapedProduct> {
+  const start = performance.now();
+
   const result: ScrapedProduct = {
     found: false,
     shop: SOURCE_WEBPAGE_KEYS.mirdiesel,
   };
 
   try {
-    const searchQuery = name.trim().replace(/\s+/g, '+');
+    // const searchQuery = name.trim().replace(/\s+/g, '+');
     // const searchUrl = `${SOURCE_URLS.mirdiesel}catalog/?q=${searchQuery}&s=Найти`;
-    const searchUrl = `${SOURCE_URLS.mirdiesel}catalog/?q=${searchQuery}`;
+    const searchUrl = `${SOURCE_URLS.mirdiesel}catalog/?q=${name}`;
 
     const searchResponse = await axios.get(searchUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0' },

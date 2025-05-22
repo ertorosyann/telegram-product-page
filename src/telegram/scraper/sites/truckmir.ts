@@ -17,6 +17,8 @@ async function waitForSearchResponse(page: Page, urlPart: string) {
 export async function scrapeTruckmir(
   productNumber: string,
 ): Promise<ScrapedProduct> {
+  const start = performance.now();
+
   const myBrands = [
     'CAT',
     'Cummins',

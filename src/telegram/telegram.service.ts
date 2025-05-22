@@ -66,7 +66,6 @@ export class TelegramService {
     ) {
       await this.textHandler.handle(ctx); // обрабатываем ввод
     } else {
-
       const isAdmin = await this.usersService.isAdmin(ctx.from?.username || '');
       if (isAdmin) {
         await ctx.reply(
@@ -97,7 +96,6 @@ export class TelegramService {
   }
   @Action('delete_user')
   async onDeleteUser(@Ctx() ctx: Context) {
-
     ctx.session.step = 'delete_user';
 
     await ctx.answerCbQuery();

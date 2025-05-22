@@ -17,7 +17,7 @@ export interface Context extends TelegrafContext {
 export type ScrapedProduct = {
   name?: string;
   price?: any;
-  shop: string;
+  shop?: string;
   found: boolean;
   brand?: string;
 };

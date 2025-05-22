@@ -1,5 +1,5 @@
 // src/telegram/scraper/sites/impart.ts
-import puppeteer from 'puppeteer';
+import { Page } from 'puppeteer';
 import {
   BASICS,
   BRANDS,
@@ -10,23 +10,26 @@ import { ScrapedProduct } from 'src/types/context.interface';
 
 /**
  * Парсит цены на impart‑shop.ru.
+ * @param page – puppeteer Cluster-ի էջ
  * @param productNumber – артикул, который ищем
  * @returns объект ScrapedProduct
  */
 export async function scrapeImpart(
+  page: Page,
   productNumber: string,
 ): Promise<ScrapedProduct> {
+  console.log('s');
+
+  const start = performance.now();
   const query = encodeURIComponent(productNumber);
   const url = `${SOURCE_URLS.impart}${query}`;
-
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
 
   try {
     await page.goto(url, {
       waitUntil: 'networkidle2',
-      timeout: 60_000,
+      timeout: 60000,
     });
+    console.log('Current page URL:', page.url());
 
     const result: ScrapedProduct = await page.evaluate(
       (
@@ -35,7 +38,6 @@ export async function scrapeImpart(
         BASICS_: typeof BASICS,
         KEYS_: typeof SOURCE_WEBPAGE_KEYS,
       ) => {
-        /** Преобразуем строку цены в число или 0 */
         const parsePrice = (priceStr: string): number | string => {
           const cleaned = priceStr.replace(/[\s ]+/g, '').replace(',', '.');
           const num = parseFloat(cleaned);
@@ -47,7 +49,6 @@ export async function scrapeImpart(
         );
 
         for (const row of rows) {
-          /* --- артикул и бренд --- */
           const article =
             row
               .querySelector(
@@ -80,15 +81,12 @@ export async function scrapeImpart(
           );
 
           if (matchedBrand) {
-            /* --- наименование --- */
             const nameCell = row.querySelector(
               'td.search-result-table-name a .search-result-table-text',
             );
             const name = nameCell?.textContent?.trim() || '';
-
             const fallbackName = article + (brand ? ` ${brand}` : '');
 
-            /* --- цена --- */
             const priceCell = row.querySelector(
               'td .search-result-table-price > div:first-child',
             );
@@ -104,7 +102,6 @@ export async function scrapeImpart(
           }
         }
 
-        /* — если ничего не нашли — */
         return {
           shop: KEYS_.impart,
           found: false,
@@ -116,10 +113,9 @@ export async function scrapeImpart(
       SOURCE_WEBPAGE_KEYS,
     );
 
-    await browser.close();
+    console.log(result, performance.now() - start);
     return result;
   } catch (error) {
-    await browser.close();
     console.error(`${SOURCE_WEBPAGE_KEYS.impart} Error:`, error);
     return {
       shop: SOURCE_WEBPAGE_KEYS.impart,
@@ -127,4 +123,22 @@ export async function scrapeImpart(
       price: BASICS.zero,
     };
   }
+}
+export async function retryScrape(
+  page: Page,
+  productNumber: string,
+  retries = 3,
+): Promise<ScrapedProduct> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await scrapeImpart(page, productNumber);
+    } catch (e) {
+      console.error(`Փորձը ${i + 1} ձախողվեց․`, e);
+    }
+  }
+  return {
+    shop: SOURCE_WEBPAGE_KEYS.impart,
+    found: false,
+    price: BASICS.zero,
+  };
 }

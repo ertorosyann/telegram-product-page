@@ -1,17 +1,18 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { Page } from 'puppeteer';
 import { ScrapedProduct } from 'src/types/context.interface';
 import { SOURCE_WEBPAGE_KEYS, BRANDS } from 'src/constants/constants';
 
 export async function udtTechnika(
   productNumber: string,
+  page: Page,
 ): Promise<ScrapedProduct> {
+  const start = performance.now();
   const result: ScrapedProduct = {
     shop: SOURCE_WEBPAGE_KEYS.udtTechnika,
     found: false,
   };
 
   const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
 
   try {
     await page.goto('https://www.udt-technika.ru/', {
@@ -55,6 +56,7 @@ export async function udtTechnika(
       },
       BRANDS,
     );
+    console.log(performance.now() - start, 'udt');
 
     if (productRow) {
       result.name = productRow.name;

@@ -2,6 +2,7 @@ import puppeteer from 'puppeteer';
 import { BRANDS, SOURCE_WEBPAGE_KEYS } from 'src/constants/constants';
 
 export async function scrapeVoltag(productNumber: string) {
+  const start = performance.now();
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 

@@ -12,8 +12,10 @@ export class TextHandler {
 
   async handle(ctx: Context) {
     if (ctx.session.step === 'single_part_request') {
+      const start = performance.now();
       const message = ctx.message as Message.TextMessage;
       const textMessage = message?.text?.trim();
+      console.log(textMessage);
 
       if (!textMessage) {
         await ctx.reply('❌ Пожалуйста, отправьте текстовое сообщение.');
@@ -62,6 +64,7 @@ export class TextHandler {
         parse_mode: 'MarkdownV2',
         ...x,
       });
+      console.log(performance.now() - start, '----------');
     } else if (ctx.session.step === 'add_user') {
       //when admin type username after click add user this function caled
       const message = ctx.message as Message.TextMessage;

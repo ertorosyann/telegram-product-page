@@ -13,6 +13,8 @@ function delay(ms: number) {
 }
 
 export async function scrapeShtren(name: string): Promise<ScrapedProduct> {
+  const start = performance.now();
+
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 

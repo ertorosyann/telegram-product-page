@@ -5,6 +5,8 @@ import { BASICS, SOURCE_WEBPAGE_KEYS, BRANDS } from 'src/constants/constants';
 export async function udtTechnika(
   productNumber: string,
 ): Promise<ScrapedProduct> {
+  const start = performance.now();
+
   const result: ScrapedProduct = {
     price: BASICS.zero,
     name: BASICS.empotyString,
@@ -63,7 +65,7 @@ export async function udtTechnika(
       result.name = productRow.name;
       result.price = productRow.price;
       result.found = true;
-      result.brand = productRow.brand
+      result.brand = productRow.brand;
     }
 
     return result;
