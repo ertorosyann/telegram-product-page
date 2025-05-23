@@ -64,20 +64,11 @@ export class TextHandler {
           '❌ Произошла ошибка при получении информации о товаре. Попробуйте снова позже.',
         );
       }
-      const x = await getMainMenuKeyboard(
-        ctx.from?.username || '',
-        this.usersService,
-      );
       ctx.session.step = undefined;
-      await ctx.reply('👇 Выберите, что хотите сделать дальше:', {
-        parse_mode: 'MarkdownV2',
-        ...x,
-      });
       console.log(performance.now() - start, '----verjnakan text------');
-    } else if (ctx.session.step === 'add_user') {
-      //when admin type username after click add user this function caled
+      await ctx.reply('Отправьте текст или Excel-файл, и мы его обработаем');
+    } else if (ctx.session.step == 'add_user') {
       const message = ctx.message as Message.TextMessage;
-
       const textMessage = message?.text?.trim();
 
       if (!textMessage) {
@@ -88,9 +79,19 @@ export class TextHandler {
       await this.usersService.addUser({ telegramUsername: textMessage });
       await ctx.reply('✅ Пользователь добавлен в базу данных.');
       ctx.session.step = undefined;
+      await ctx.reply(
+        'Пожалуйста, выберите, что вы хотите сделать:\n— ✍️ Написать сообщение пользователю\n— 📎 Отправить файл пользователю\n— 👥 Работать с несколькими пользователями',
+        {
+          parse_mode: 'MarkdownV2',
+          ...(await getMainMenuKeyboard(
+            ctx.from?.username || '',
+            this.usersService,
+          )),
+        },
+      );
+      await ctx.reply('Отправьте текст или Excel-файл, и мы его обработаем');
     } else if (ctx.session.step === 'delete_user') {
       const message = ctx.message as Message.TextMessage;
-
       const textMessage = message?.text?.trim();
 
       if (!textMessage) {
@@ -102,6 +103,17 @@ export class TextHandler {
       });
       await ctx.reply(resultOfDelate);
       ctx.session.step = undefined;
+      await ctx.reply(
+        'Пожалуйста, выберите, что вы хотите сделать:\n— ✍️ Написать сообщение пользователю\n— 📎 Отправить файл пользователю\n— 👥 Работать с несколькими пользователями',
+        {
+          parse_mode: 'MarkdownV2',
+          ...(await getMainMenuKeyboard(
+            ctx.from?.username || '',
+            this.usersService,
+          )),
+        },
+      );
+      await ctx.reply('Отправьте текст или Excel-файл, и мы его обработаем');
     }
   }
 }

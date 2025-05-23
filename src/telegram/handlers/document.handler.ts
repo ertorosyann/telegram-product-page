@@ -51,10 +51,11 @@ export class DocumentHandler {
       );
       const start = performance.now();
       const { messages, rows } = await compareItems(inputItems, skladItems);
+
       console.error(
         (performance.now() - start) / 1000,
         'verjanakan ardunqn e ',
-      ); // output in seconds
+      );
 
       const resultBuffer = createResultExcelBuffer(rows);
 

@@ -17,7 +17,7 @@ import { UserHandler } from './handlers/user.handleer';
   imports: [
     TelegrafModule.forRootAsync({
       useFactory: () => ({
-        token: '7786713557:AAFCqvTTzu-iiq9P_XYLQQuOdVkM-vbv0QA',
+        token: '7559322394:AAHHLZ08o2aK7wD6gctr5RTtDEvdrsFx0HU',
         middlewares: [session()],
       }),
     }),

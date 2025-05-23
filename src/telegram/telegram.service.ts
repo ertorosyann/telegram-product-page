@@ -18,6 +18,7 @@ import { HttpService } from '@nestjs/axios';
 import { DocumentHandler } from './handlers/document.handler';
 import { UsersService } from './authorization/users.service';
 import { UserHandler } from './handlers/user.handleer';
+import { getMainMenuKeyboard } from './utils/manu';
 
 @Injectable()
 @Update()
@@ -45,72 +46,63 @@ export class TelegramService {
     await this.helpHandler.handle(ctx);
   }
 
-  @On('document')
-  async onDocument(@Ctx() ctx: Context) {
-    if (ctx.session.step === 'document') {
-      await this.documentHandler.handle(ctx);
-    } else {
+  @On('message')
+  async onMessage(@Ctx() ctx: Context) {
+    const message = ctx.message;
+
+    if (!message) {
+      await ctx.reply('⚠️ Не удалось прочитать сообщение.');
+      return;
+    }
+    if (ctx.session.step === 'add_user' || ctx.session.step === 'delete_user') {
+      await ctx.sendChatAction('typing');
+      await ctx.reply('⌛ Пожалуйста, подождите, идет обработка...');
+      await this.textHandler.handle(ctx);
+      return;
+    }
+
+    if ('document' in message) {
+      ctx.session.step = 'document';
       await ctx.reply(
-        '❗ Пожалуйста, сначала выберите "📂 Загрузить файл" в меню ниже.',
+        '📂 Вы отправили файл. Пожалуйста, подождите, идет обработка...',
       );
-      await this.startHandler.handle(ctx); // повторно показываем меню
-    }
-  }
-
-  @On('text')
-  async onText(@Ctx() ctx: Context) {
-    if (
-      ctx.session.step === 'single_part_request' ||
-      ctx.session.step === 'add_user' ||
-      ctx.session.step === 'delete_user'
-    ) {
-      await this.textHandler.handle(ctx); // обрабатываем ввод
+      await this.documentHandler.handle(ctx);
+    } else if ('text' in message) {
+      ctx.session.step = 'single_part_request';
+      await ctx.reply(
+        '✉️ Вы отправили текст. Пожалуйста, подождите, идет обработка...',
+      );
+      await this.textHandler.handle(ctx);
     } else {
-      const isAdmin = await this.usersService.isAdmin(ctx.from?.username || '');
-      if (isAdmin) {
-        await ctx.reply(
-          '❗ Пожалуйста, сначала выберите любую кнопку из меню ниже.',
-        );
-      } else {
-        await ctx.reply(
-          '❗ Пожалуйста, сначала выберите "📝 Запрос одной запчасти" в меню ниже.',
-        );
-      }
-      await this.startHandler.handle(ctx); // повторно показываем меню
+      await ctx.reply('⚠️ Неподдерживаемый тип сообщения.');
     }
   }
 
-  // Обработчик для кнопки '📝 Single Part'
-  @Action('single_part_request')
-  async onSingle(@Ctx() ctx: Context) {
-    ctx.session.step = 'single_part_request'; // Устанавливаем текущий шаг сессии
-    await ctx.answerCbQuery(); // Убираем "loading" у кнопки
-    await ctx.reply('Введите номер детали для поиска:');
-  }
-  //afetr admin click on add user this fucntion is trigre
   @Action('add_user')
   async onAddUser(@Ctx() ctx: Context) {
     ctx.session.step = 'add_user';
     await ctx.answerCbQuery();
-    await ctx.reply('Пожалуйста, введите ID пользователя.');
+    await ctx.reply('Пожалуйста, введите Username(James123) пользователя.');
   }
   @Action('delete_user')
   async onDeleteUser(@Ctx() ctx: Context) {
     ctx.session.step = 'delete_user';
-
     await ctx.answerCbQuery();
-    await ctx.reply('Пожалуйста, введите ID пользователя.');
+    await ctx.reply('Пожалуйста, введите Username(James123)  пользователя.');
   }
+
   @Action('all_users')
   async onAllUsers(@Ctx() ctx: Context) {
     await this.userHandler.handle(ctx);
-  }
-
-  // Обработчик для кнопки '📂 Upload File'
-  @Action('document')
-  async onFile(@Ctx() ctx: Context) {
-    ctx.session.step = 'document'; // Устанавливаем шаг сессии для загрузки файла
-    await ctx.answerCbQuery(); // Убираем "loading" у кнопки
-    await ctx.reply('Пожалуйста, отправьте Excel файл.');
+    await ctx.reply(
+      'Пожалуйста, выберите, что вы хотите сделать:\n— ✍️ Написать сообщение пользователю\n— 📎 Отправить файл пользователю\n— 👥 Работать с несколькими пользователями',
+      {
+        parse_mode: 'MarkdownV2',
+        ...(await getMainMenuKeyboard(
+          ctx.from?.username || '',
+          this.usersService,
+        )),
+      },
+    );
   }
 }

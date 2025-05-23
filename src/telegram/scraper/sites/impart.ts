@@ -18,8 +18,6 @@ export async function scrapeImpart(
   page: Page,
   productNumber: string,
 ): Promise<ScrapedProduct> {
-  console.log('s');
-
   const start = performance.now();
   const query = encodeURIComponent(productNumber);
   const url = `${SOURCE_URLS.impart}${query}`;
@@ -29,7 +27,6 @@ export async function scrapeImpart(
       waitUntil: 'networkidle2',
       timeout: 60000,
     });
-    console.log('Current page URL:', page.url());
 
     const result: ScrapedProduct = await page.evaluate(
       (

@@ -37,9 +37,8 @@ export async function scrapeShtren(names: string[]): Promise<ScrapedProduct[]> {
               timeout: 3000,
             },
           );
-          console.log(summaryElement);
         } catch {
-          console.log('Limit ended');
+          console.error('Limit ended');
         }
         if (!summaryElement) {
           continue;

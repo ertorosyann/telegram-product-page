@@ -52,7 +52,6 @@ export async function scrapeIMachinery(
   });
 
   const settledResults = await Promise.allSettled(tasks);
-  console.log(settledResults);
 
   return settledResults.map((res) =>
     res.status === 'fulfilled'

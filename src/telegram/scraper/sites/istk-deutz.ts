@@ -75,14 +75,8 @@ export async function scrapeIstkDeutz(
       result.name = productTitle;
       result.price = price;
       result.found = true;
-      console.log(name);
 
-      console.log(
-        'scrapeIstkDeutz',
-        result,
-        name,
-        `${Math.round(performance.now() - start)}ms`,
-      );
+      console.log(`${Math.round(performance.now() - start)}ms`);
 
       results.push(result);
     } catch (error) {

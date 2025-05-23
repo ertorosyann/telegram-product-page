@@ -21,7 +21,6 @@ export async function scrape74Parts(
   });
 
   const page: Page = await browser.newPage();
-  console.log(browser);
 
   async function scrapeSingle(productNumber: string): Promise<ScrapedProduct> {
     const url = `${SOURCE_URLS.parts74}${encodeURIComponent(productNumber)}`;

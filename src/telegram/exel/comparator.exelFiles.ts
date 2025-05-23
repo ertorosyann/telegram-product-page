@@ -43,10 +43,7 @@ export async function compareItems(
     if (index >= inputItems.length) return;
 
     const inputItem = inputItems[index++];
-    console.log(
-      inputItem,
-      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
-    );
+
     const partNumber = inputItem['кат.номер'];
     const inputQty = inputItem['кол-во'] ?? 0;
 
@@ -59,7 +56,6 @@ export async function compareItems(
 
       // Ищем цену на складе
       const skladMatch = skladItems.find((s) => s['кат.номер'] === partNumber);
-      console.log(skladMatch);
 
       const priceSklad = skladMatch?.['цена, RUB'] ?? 0;
 
@@ -70,16 +66,16 @@ export async function compareItems(
       let impartPrice: PriceInfo = { price: 0, shopName: 'impart' };
       let pcagroupPrice: PriceInfo = { price: 0, shopName: 'pcagroup' };
       let camspartsPrice: PriceInfo = { price: 0, shopName: 'camsparts' };
-      // let shtrenPrice: PriceInfo = { price: 0, shopName: 'shtern' };
+      let shtrenPrice: PriceInfo = { price: 0, shopName: 'shtern' };
       let recamgrPrice: PriceInfo = { price: 0, shopName: 'recamgr' };
       let istkiDeutzPrice: PriceInfo = { price: 0, shopName: 'istk-deutz' };
       let intertrekPrice: PriceInfo = { price: 0, shopName: 'Intertrek.info' };
       let ixoraPrice: PriceInfo = { price: 0, shopName: 'b2b.ixora-auto' };
       let udtTechnikaPrice: PriceInfo = { price: 0, shopName: 'udtTechnika' };
-      // let dvPtPrice: PriceInfo = { price: 0, shopName: 'dv-pt' };
-      // let voltagPrice: PriceInfo = { price: 0, shopName: 'voltag' };
-      // let mirDieselPrice: PriceInfo = { price: 0, shopName: 'mirdiesel' };
-      // let truckdrivePrice: PriceInfo = { price: 0, shopName: 'truckdrive' };
+      let dvPtPrice: PriceInfo = { price: 0, shopName: 'dv-pt' };
+      let voltagPrice: PriceInfo = { price: 0, shopName: 'voltag' };
+      let mirDieselPrice: PriceInfo = { price: 0, shopName: 'mirdiesel' };
+      let truckdrivePrice: PriceInfo = { price: 0, shopName: 'truckdrive' };
 
       const allPrices: PriceInfo[] = [{ price: priceSklad, shopName: 'sklad' }];
 
@@ -119,10 +115,10 @@ export async function compareItems(
               camspartsPrice = entry;
               allPrices.push(entry);
               break;
-            // case 'shtern':
-            //   shtrenPrice = entry;
-            //   allPrices.push(entry);
-            //   break;
+            case 'shtern':
+              shtrenPrice = entry;
+              allPrices.push(entry);
+              break;
             case 'recamgr':
               recamgrPrice = entry;
               allPrices.push(entry);
@@ -144,22 +140,22 @@ export async function compareItems(
               allPrices.push(entry);
               break;
             // ------------------------------------
-            // case 'mirdiesel':
-            //   mirDieselPrice = entry;
-            //   allPrices.push(entry);
-            //   break;
-            // case 'voltag':
-            //   voltagPrice = entry;
-            //   allPrices.push(entry);
-            //   break;
-            // case 'dv-pt':
-            //   dvPtPrice = entry;
-            //   allPrices.push(entry);
-            //   break;
-            // case 'truckdrive':
-            //   truckdrivePrice = entry;
-            //   allPrices.push(entry);
-            //   break;
+            case 'mirdiesel':
+              mirDieselPrice = entry;
+              allPrices.push(entry);
+              break;
+            case 'voltag':
+              voltagPrice = entry;
+              allPrices.push(entry);
+              break;
+            case 'dv-pt':
+              dvPtPrice = entry;
+              allPrices.push(entry);
+              break;
+            case 'truckdrive':
+              truckdrivePrice = entry;
+              allPrices.push(entry);
+              break;
             default:
               break;
           }
@@ -215,8 +211,8 @@ export async function compareItems(
         pcagroup: pcagroupPrice.price,
         // 'spb.camsparts': 0,
         'spb.camsparts': camspartsPrice.price,
-        shtern: 0,
-        // shtern: shtrenPrice.price,
+        // shtern: 0,
+        shtern: shtrenPrice.price,
         // recamgr: 0,
         recamgr: recamgrPrice.price,
         // 'istk-deutz': 0,
@@ -227,14 +223,14 @@ export async function compareItems(
         'b2b.ixora-auto': ixoraPrice.price,
         // "udtTechnika": 0,
         udtTechnika: udtTechnikaPrice.price,
-        voltag: 0,
-        // voltag: voltagPrice.price,
-        'dv-pt': 0,
-        // 'dv-pt': dvPtPrice.price,
-        truckdrive: 0,
-        // truckdrive: truckdrivePrice.price,
-        mirdiesel: 0,
-        // mirdiesel: mirDieselPrice.price,
+        // voltag: 0,
+        voltag: voltagPrice.price,
+        // 'dv-pt': 0,
+        'dv-pt': dvPtPrice.price,
+        // truckdrive: 0,
+        truckdrive: truckdrivePrice.price,
+        // mirdiesel: 0,
+        mirdiesel: mirDieselPrice.price,
         'vip.blumaq': 0,
         // 'vip.blumaq': vipBlumaqPrice.price,
         kta50: 0,

@@ -2,8 +2,6 @@ import { parentPort } from 'worker_threads';
 import { scrapeAll } from '../scraper';
 
 parentPort?.on('message', async (partNumber: string) => {
-  console.log(partNumber, 'sstsdtgd');
-
   try {
     const result = await scrapeAll([partNumber.trim()]);
     if (parentPort) {

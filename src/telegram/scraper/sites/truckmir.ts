@@ -44,7 +44,6 @@ export async function scrapeTruckmir(
         price: BASICS.zero,
         name: BASICS.empotyString,
       };
-      console.log('stexa');
 
       try {
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });

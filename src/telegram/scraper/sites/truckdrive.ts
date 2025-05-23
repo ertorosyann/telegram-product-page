@@ -24,7 +24,6 @@ export async function scrapeTruckdrive(
     },
   });
 
-  console.log(response.data);
   // const browser = await puppeteer.launch({ headless: true });
   // const results: ScrapedProduct[] = [];
 
