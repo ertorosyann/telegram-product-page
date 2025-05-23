@@ -3,73 +3,87 @@ import * as cheerio from 'cheerio';
 import { BRANDS, SOURCE_WEBPAGE_KEYS } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
 
-export async function intertrek(productCode: string): Promise<ScrapedProduct> {
-  const start = performance.now();
+export async function intertrek(
+  productCodes: string[],
+): Promise<ScrapedProduct[]> {
+  const results: ScrapedProduct[] = [];
 
-  const searchUrl = `http://intertrek.info/search?search=${productCode}`;
+  for (const productCode of productCodes) {
+    const start = performance.now();
 
-  /* базовый шаблон результата */
-  const result: ScrapedProduct = {
-    shop: SOURCE_WEBPAGE_KEYS.intertrek,
-    found: false,
-  };
-
-  try {
-    /* --- поиск --- */
-
-    const { data: searchHtml } = await axios.get<string>(searchUrl);
-    const $ = cheerio.load(searchHtml);
-
-    const firstProductAnchor = $(
-      'tr[itemprop="itemListElement"] a[itemprop="item"]',
-    ).first();
-
-    if (!firstProductAnchor.length) return result;
-
-    const relativeLink = firstProductAnchor.attr('href');
-
-    if (!relativeLink) return result;
-
-    /* --- карточка товара --- */
-    const productUrl = `http://intertrek.info${relativeLink}`;
-
-    const { data: productHtml } = await axios.get<string>(productUrl);
-    const $$ = cheerio.load(productHtml);
-
-    const productName = $$('.dl-horizontal dd').eq(1).text().trim();
-    const brandModel = $$('.dl-horizontal dd').eq(5).text().trim();
-    const brandDvigitel = $$('.dl-horizontal dd').eq(4).text().trim();
-
-    const rawPrice = $$('td[style*="white-space:nowrap"] p')
-      .first()
-      .text()
-      .trim();
-
-    /* --- проверяем бренд --- */
-    const matchedBrand = BRANDS.find(
-      (b) =>
-        brandModel.toLowerCase().includes(b.toLowerCase()) ||
-        brandDvigitel.toLowerCase().includes(b.toLowerCase()),
-    );
-
-    if (!productName || !rawPrice || !matchedBrand) return result;
-
-    /* --- нормализуем цену (убираем пробелы, «руб.», запятую → точка) --- */
-    const priceNumber = parseFloat(
-      rawPrice.replace(/\s|руб\.?/gi, '').replace(',', '.'),
-    );
-
-    console.log(result, performance.now() - start);
-    return {
-      shop: SOURCE_WEBPAGE_KEYS.zipteh,
-      found: true,
-      name: productName,
-      price: priceNumber,
+    const result: ScrapedProduct = {
+      shop: SOURCE_WEBPAGE_KEYS.intertrek,
+      found: false,
+      name: productCode, // Որպես նախնական անուն վերադարձնում ենք մուտքի կոդը
     };
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Unknown error occurred.';
-    console.error(`❗ [ZiptehOnline] Error: ${message}`);
-    return result; // found: false
+
+    try {
+      const searchUrl = `http://intertrek.info/search?search=${encodeURIComponent(productCode)}`;
+
+      const { data: searchHtml } = await axios.get<string>(searchUrl);
+      const $ = cheerio.load(searchHtml);
+
+      const firstProductAnchor = $(
+        'tr[itemprop="itemListElement"] a[itemprop="item"]',
+      ).first();
+
+      if (!firstProductAnchor.length) {
+        results.push(result);
+        continue;
+      }
+
+      const relativeLink = firstProductAnchor.attr('href');
+      if (!relativeLink) {
+        results.push(result);
+        continue;
+      }
+
+      const productUrl = `http://intertrek.info${relativeLink}`;
+      const { data: productHtml } = await axios.get<string>(productUrl);
+      const $$ = cheerio.load(productHtml);
+
+      const productName = $$('.dl-horizontal dd').eq(1).text().trim();
+      const brandModel = $$('.dl-horizontal dd').eq(5).text().trim();
+      const brandDvigitel = $$('.dl-horizontal dd').eq(4).text().trim();
+
+      const rawPrice = $$('td[style*="white-space:nowrap"] p')
+        .first()
+        .text()
+        .trim();
+
+      const matchedBrand = BRANDS.find(
+        (b) =>
+          brandModel.toLowerCase().includes(b.toLowerCase()) ||
+          brandDvigitel.toLowerCase().includes(b.toLowerCase()),
+      );
+
+      if (!productName || !rawPrice || !matchedBrand) {
+        results.push(result);
+        continue;
+      }
+
+      const priceNumber = parseFloat(
+        rawPrice.replace(/\s|руб\.?/gi, '').replace(',', '.'),
+      );
+
+      results.push({
+        shop: SOURCE_WEBPAGE_KEYS.intertrek,
+        found: true,
+        name: productName,
+        price: priceNumber,
+      });
+
+      console.log(
+        `Intertrek search for "${productCode}" took:`,
+        performance.now() - start,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown error occurred.';
+      console.error(`❗ [Intertrek] Error for "${productCode}": ${message}`);
+      results.push(result);
+    }
   }
+
+  return results;
 }

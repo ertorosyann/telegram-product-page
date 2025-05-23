@@ -22,65 +22,95 @@ import { scrapeTruckmir } from './sites/truckmir'; // dandax
 import { scrapeVipBlumaq } from './sites/vipBlumaq'; //need a  registrations
 import { scrapeZiptehOnline } from './sites/ziptehOnline'; // need a registrations
 
-const scrapers = [
-  { name: 'Seltex', fn: scrapeSeltex }, // fast find slow if product isnt
-  { name: 'Pcagroup', fn: scrapePcaGroup }, // fast
-  { name: 'Imachinery', fn: scrapeIMachinery }, //fast
-  { name: '74Parts', fn: scrape74Parts }, // fast
-  { name: 'Spb.camsparts', fn: scrapeCamsParts }, //fast
-  { name: 'Recamgr', fn: scrapeRecamgr }, // fast
-  { name: 'istk-deutz', fn: scrapeIstkDeutz }, // պրաբելները հանել ես պրոդուկտը չի բերում // 7000
-  { name: 'Intertrek.info', fn: intertrek }, // դանդաղոտ կայքը դանդաղ է բեռնվում
-  { name: 'Dv-Pt', fn: scrapeDvPt },
-  { name: 'b2b.ixora-auto', fn: scrapeIxora },
-  // { name: 'Impart', fn: xscrapeImpart },
-  { name: 'Mirdiesel', fn: scrapeMirDiesel }, // dont work in current time webpage try later
-  { udtTechnika: 'udtTechnika', fn: udtTechnika }, //dandax
-  // { name: 'Vip.blumaq', fn: scrapeVipBlumaq },
-  // { name: 'Zipteh.online', fn: scrapeZiptehOnline },
-
-  // { name: 'Voltag', fn: scrapeVoltag },
-  // { name: 'Truckdrive', fn: scrapeTruckdrive }, //
-  // { name: 'Shtren', fn: scrapeShtren }, //dandaxa
-  // { name: 'Truckmir', fn: scrapeTruckmir }, // dont work
+// Scrapers config
+const scrapers: {
+  name: string;
+  fn: (productNames: string[], page?: any) => Promise<ScrapedProduct[]>;
+  usePuppeteer: boolean;
+}[] = [
+  // { name: 'Seltex', fn: scrapeSeltex, usePuppeteer: false },
+  // { name: 'Pcagroup', fn: scrapePcaGroup, usePuppeteer: false },
+  // { name: 'Imachinery', fn: scrapeIMachinery, usePuppeteer: false },
+  // { name: 'Recamgr', fn: scrapeRecamgr, usePuppeteer: false }, // fast
+  // { name: 'Spb.camsparts', fn: scrapeCamsParts, usePuppeteer: false }, //fast
+  // { name: 'Mirdiesel', fn: scrapeMirDiesel, usePuppeteer: false }, // dont work in current time webpage try later
+  // { name: 'Truckdrive', fn: scrapeTruckdrive, usePuppeteer: false }, // anelu ban ka
+  // { name: 'Truckmir', fn: scrapeTruckmir, usePuppeteer: false }, //
+  // { name: 'Shtren', fn: scrapeShtren, usePuppeteer: false }, //dandaxa
+  // { name: 'Voltag', fn: scrapeVoltag, usePuppeteer: false }, //dandax
+  // { name: 'udtTechnika', fn: udtTechnika, usePuppeteer: false }, //dandax
+  // { name: '74Parts', fn: scrape74Parts, usePuppeteer: true },
+  // { name: 'Dv-Pt', fn: scrapeDvPt, usePuppeteer: false },
+  // { name: 'b2b.ixora-auto', fn: scrapeIxora, usePuppeteer: false }, // dandax patasxan chi tali
+  // { name: 'Intertrek.info', fn: intertrek, usePuppeteer: false }, // դանդաղոտ կայքը դանդաղ է բեռնվում
+  { name: 'istk-deutz', fn: scrapeIstkDeutz, usePuppeteer: false }, // պրաբելները հանել ես պրոդուկտը չի բերում // 7000
 ];
 
 export async function scrapeAll(
-  productName: string,
+  productNames: string[],
 ): Promise<ScrapedProduct[]> {
-  const start = performance.now();
+  const puppeteerScrapers = scrapers.filter((s) => s.usePuppeteer);
+  const axiosScrapers = scrapers.filter((s) => !s.usePuppeteer);
 
-  // const results = await Promise.all(scrapers.map((s) => s.fn(productName)));
-  // return results;
-  const cluster = await Cluster.launch({
-    concurrency: Cluster.CONCURRENCY_PAGE,
-    maxConcurrency: 8,
-    puppeteerOptions: {
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    },
-  });
+  const puppeteerResults: ScrapedProduct[] = [];
 
-  await cluster.task(async ({ page, data }) => {
-    const { fn, productName } = data;
-    return await fn(productName, page);
-  });
+  if (puppeteerScrapers.length) {
+    const cluster = await Cluster.launch({
+      concurrency: Cluster.CONCURRENCY_PAGE,
+      maxConcurrency: 8,
+      puppeteerOptions: {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      },
+    });
 
-  const promises: Promise<ScrapedProduct>[] = [];
-  for (const scraper of scrapers) {
-    promises.push(
-      cluster.execute({
-        fn: scraper.fn,
-        productName,
+    // Define cluster task
+    await cluster.task(async ({ page, data }) => {
+      const { fn, productNames } = data;
+      return fn(productNames, page);
+    });
+
+    // Execute all puppeteer scrapers concurrently
+    const results = await Promise.all(
+      puppeteerScrapers.map(async (scraper) => {
+        try {
+          return await cluster.execute({
+            fn: scraper.fn,
+            productNames,
+          });
+        } catch (err) {
+          console.error(`❌ ${scraper.name} failed`, err);
+          return [{ shop: scraper.name, found: false }];
+        }
       }),
     );
+
+    puppeteerResults.push(...results.flat());
+
+    await cluster.idle();
+    await cluster.close();
   }
 
-  const results = await Promise.all(promises);
+  // Run axios scrapers normally
+  const axiosResults = (
+    await Promise.all(
+      axiosScrapers.map(async (scraper) => {
+        try {
+          return await scraper.fn(productNames);
+        } catch (err) {
+          console.error(
+            `❌ Axios scraper failed: ${scraper.name}`,
+            err.message,
+          );
+          return [{ shop: scraper.name, found: false }];
+        }
+      }),
+    )
+  ).flat();
 
-  await cluster.idle();
-  await cluster.close();
+  const allResults = [...puppeteerResults, ...axiosResults];
 
-  console.log('Total time:', performance.now() - start);
-  return results;
+  console.log('sax', allResults);
+
+  return allResults;
 }

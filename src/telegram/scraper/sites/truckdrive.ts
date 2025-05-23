@@ -1,4 +1,5 @@
 import * as puppeteer from 'puppeteer';
+
 import { ScrapedProduct } from 'src/types/context.interface';
 import {
   BASICS,
@@ -6,60 +7,144 @@ import {
   SOURCE_WEBPAGE_KEYS,
   BRANDS,
 } from 'src/constants/constants';
+import axios from 'axios';
 
-export async function scrapeTruckdrive(name: string): Promise<any> {
-  const start = performance.now();
+export async function scrapeTruckdrive(
+  names: string[],
+): Promise<ScrapedProduct[]> {
+  const vendorCode = 'FT140FLLED';
+  const vendorName = 'FRISTOM';
+  const results = [];
+  const url = `https://truckdrive.ru/offers?vendorCode=${vendorCode}&vendorName=${vendorName}&withCrosses=true`;
 
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
-  const result: ScrapedProduct = {
-    shop: SOURCE_WEBPAGE_KEYS.truckdrive,
-    found: false,
-    price: BASICS.zero,
-    name: BASICS.empotyString,
-  };
-  try {
-    await page.goto(SOURCE_URLS.truckdrive, {
-      waitUntil: 'domcontentloaded',
-    });
+  const response = await axios.get(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0',
+      Accept: 'application/json',
+    },
+  });
 
-    // Type into search box and press Enter
-    await page.type('#inputsearch_searchstring', name);
-    await page.keyboard.press('Enter');
+  console.log(response.data);
+  // const browser = await puppeteer.launch({ headless: true });
+  // const results: ScrapedProduct[] = [];
 
-    // Wait for product results to load
-    await page.waitForSelector('.offer__product-price span', {
-      timeout: 10000,
-    });
+  // try {
+  //   const page = await browser.newPage();
 
-    // Extract product name
-    const title = await page.$eval(
-      '.product-name__decor-uppercase',
-      (el: Element) => el.textContent?.trim() ?? '',
-    );
+  //   for (const name of names) {
+  //     const start = performance.now();
 
-    // Extract price
-    const price = await page.$eval(
-      '.offer__product-price span',
-      (el: Element) => el.textContent?.trim() ?? '',
-    );
-    const brandName = await page.$eval(
-      '.catalog-products-table__product-brand',
-      (el: Element) => el.textContent?.trim() ?? '',
-    );
-    const matchedBrand = BRANDS.find((brand) =>
-      brandName.toLowerCase().includes(brand.toLowerCase()),
-    );
-    if (!matchedBrand) {
-      return result;
-    }
-    result.name = title;
-    result.price = price;
-    await browser.close();
+  //     const result: ScrapedProduct = {
+  //       shop: SOURCE_WEBPAGE_KEYS.truckdrive,
+  //       found: false,
+  //       price: BASICS.zero,
+  //       name: BASICS.empotyString,
+  //     };
 
-    return result;
-  } catch (error) {
-    console.error(`${SOURCE_WEBPAGE_KEYS.truckdrive} Error:`, error);
-    return { shop: SOURCE_WEBPAGE_KEYS.truckdrive, found: false };
-  }
+  //     try {
+  //       await page.goto(SOURCE_URLS.truckdrive, {
+  //         waitUntil: 'domcontentloaded',
+  //       });
+
+  //       // Очистить поисковое поле (если нужно)
+  //       await page.evaluate(() => {
+  //         const input = document.querySelector(
+  //           '#inputsearch_searchstring',
+  //         ) as HTMLInputElement;
+  //         if (input) input.value = '';
+  //       });
+
+  //       // Ввести имя в поле поиска и нажать Enter
+  //       await page.type('#inputsearch_searchstring', name);
+  //       await page.keyboard.press('Enter');
+  //       try {
+  //         // Սպասում ենք մինչև 2 վրկ, որ .search-without-results հայտնվի (դիվը կա, արդյունք չկա)
+  //         await page.waitForSelector('.search-without-results', {
+  //           timeout: 2000,
+  //         });
+  //         // Եթե հասավ այստեղ՝ կա արդյունք չգտնելու ինդիկատորը
+  //         results.push({
+  //           shop: SOURCE_WEBPAGE_KEYS.truckdrive,
+  //           found: false,
+  //           price: BASICS.zero,
+  //           name: BASICS.empotyString,
+  //         });
+  //         continue;
+  //       } catch (e) {
+  //         console.log('es qu');
+  //       }
+
+  //       console.log('steaxa');
+
+  //       // if (noResults) {
+  //       //   // Արդյունքներ չկան, վերադարձնել անմիջապես false
+  //       //   results.push({
+  //       //     shop: SOURCE_WEBPAGE_KEYS.truckdrive,
+  //       //     found: false,
+  //       //     price: BASICS.zero,
+  //       //     name: BASICS.empotyString,
+  //       //   });
+  //       // }
+  //       // Ждать загрузки результата
+
+  //       try {
+  //         // Սպասում ենք մինչև 2 վրկ, որ .search-without-results հայտնվի (դիվը կա, արդյունք չկա)
+  //         await page.waitForSelector('.offer__product-price span', {
+  //           timeout: 10000,
+  //         });
+  //         // Եթե հասավ այստեղ՝ կա արդյունք չգտնելու ինդիկատորը
+  //         results.push({
+  //           shop: SOURCE_WEBPAGE_KEYS.truckdrive,
+  //           found: false,
+  //           price: BASICS.zero,
+  //           name: BASICS.empotyString,
+  //         });
+  //         continue;
+  //       } catch (e) {
+  //         console.log('es qu');
+  //       }
+  //       // Извлечь данные
+  //       const title = await page.$eval(
+  //         '.product-name__decor-uppercase',
+  //         (el) => el.textContent?.trim() ?? '',
+  //       );
+  //       const priceRaw = await page.$eval(
+  //         '.offer__product-price span',
+  //         (el) => el.textContent?.trim() ?? '',
+  //       );
+  //       const brandName = await page.$eval(
+  //         '.catalog-products-table__product-brand',
+  //         (el) => el.textContent?.trim() ?? '',
+  //       );
+
+  //       // Проверка бренда
+  //       const matchedBrand = BRANDS.find((brand) =>
+  //         brandName.toLowerCase().includes(brand.toLowerCase()),
+  //       );
+  //       if (!matchedBrand) {
+  //         results.push(result);
+  //         continue;
+  //       }
+
+  //       result.name = title;
+  //       result.price = priceRaw;
+  //       result.found = true;
+
+  //       console.log(`Search time for "${name}":`, performance.now() - start);
+  //       results.push(result);
+  //     } catch (innerError) {
+  //       console.error(
+  //         `${SOURCE_WEBPAGE_KEYS.truckdrive} Error for "${name}":`,
+  //         innerError,
+  //       );
+  //       results.push(result);
+  //     }
+  //   }
+  // } catch (error) {
+  //   console.error(`${SOURCE_WEBPAGE_KEYS.truckdrive} Unexpected Error:`, error);
+  // } finally {
+  //   await browser.close();
+  // }
+
+  return results;
 }

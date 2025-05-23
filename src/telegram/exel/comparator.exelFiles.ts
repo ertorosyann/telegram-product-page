@@ -54,7 +54,6 @@ export async function compareItems(
     try {
       // Запускаем воркер для скрапинга
       const resultFromScrap = await runScrapeWorker(String(partNumber).trim());
-      console.log('result = ', resultFromScrap);
 
       // Ищем цену на складе
       const skladMatch = skladItems.find((s) => s['кат.номер'] === partNumber);
@@ -175,7 +174,7 @@ export async function compareItems(
         bestPrice = firstNonZero ?? sorted[0];
         totalPrice = bestPrice.price * inputQty;
       }
-      // console.log('Best Price = ', bestPrice.price, bestPrice.shopName);
+      // 'Best Price = ', bestPrice.price, bestPrice.shopName);
 
       // const sorted = allPrices.slice().sort((a, b) => a.price - b.price);
       // const firstNonZero = sorted.find((p) => p.price > 0);

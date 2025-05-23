@@ -8,7 +8,7 @@ import { UsersService } from '../authorization/users.service';
 
 @Injectable()
 export class TextHandler {
-  constructor(private readonly usersService: UsersService) {} // ԱՅՍՏԵՂ ԱՎԵԼԱՑՐԵԼ
+  constructor(private readonly usersService: UsersService) {}
 
   async handle(ctx: Context) {
     if (ctx.session.step === 'single_part_request') {
@@ -42,7 +42,22 @@ export class TextHandler {
 
       try {
         /* ─────────────── изменено: now scrapeAll returns ScrapedProduct[] ─────────────── */
-        const products: ScrapedProduct[] = await scrapeAll(nameItem.trim());
+        const products: ScrapedProduct[] = await scrapeAll([
+          // 'PBD-275',
+          // 'FT140FLLED',
+          // 'FT140FLLED',
+          // 'FT140FLLED',
+          '04904728',
+          'FT140FLLEDsa',
+          'DV00-00001235',
+          // '',
+          '12345',
+          'KR4004N',
+          '600-813-4420',
+          '2375059'
+          // '53214',
+          // '1979322',
+        ]);
 
         /* ──────────────────────────────────────────────────────────────────────────────── */
 
@@ -64,7 +79,7 @@ export class TextHandler {
         parse_mode: 'MarkdownV2',
         ...x,
       });
-      console.log(performance.now() - start, '----------');
+      console.log(performance.now() - start, '----verjnakan text------');
     } else if (ctx.session.step === 'add_user') {
       //when admin type username after click add user this function caled
       const message = ctx.message as Message.TextMessage;

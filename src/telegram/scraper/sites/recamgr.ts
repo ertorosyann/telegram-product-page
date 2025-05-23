@@ -7,51 +7,74 @@ import {
   SOURCE_WEBPAGE_KEYS,
 } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
+export async function scrapeRecamgr(
+  names: string[],
+): Promise<ScrapedProduct[]> {
+  const results: ScrapedProduct[] = [];
 
-export async function scrapeRecamgr(name: string): Promise<ScrapedProduct> {
-  const start = performance.now();
+  for (const name of names) {
+    const start = performance.now();
 
-  const result: ScrapedProduct = {
-    shop: SOURCE_WEBPAGE_KEYS.recamgr,
-    found: false,
-  };
-  try {
-    const searchUrl = `${SOURCE_URLS.recamgr}${encodeURIComponent(name)}`;
+    const result: ScrapedProduct = {
+      shop: SOURCE_WEBPAGE_KEYS.recamgr,
+      found: false,
+      name, // Որ անունը հետադարձվի, հարմար կլինի հետք ունենալ
+    };
 
-    const response = await axios.get(searchUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0',
-      },
-    });
+    try {
+      const searchUrl = `${SOURCE_URLS.recamgr}${encodeURIComponent(name)}`;
 
-    const $ = cheerio.load(response.data);
+      const response = await axios.get(searchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+        },
+      });
 
-    const check = $('h1.section__title').text().trim();
-    if (!check) return result;
-    const product = $('.goods__item').first(); // Первый товар в списке
+      const $ = cheerio.load(response.data);
 
-    if (!product.length) return result;
+      const check = $('h1.section__title').text().trim();
+      if (!check) {
+        results.push(result);
+        continue;
+      }
 
-    const title = product.find(' .lnk').text().trim() || 'Без названия';
-    const matchBrand = BRANDS.find((brand) =>
-      title.toLowerCase().includes(brand.toLowerCase()),
-    );
-    if (!matchBrand) {
-      return result;
+      const product = $('.goods__item').first();
+      if (!product.length) {
+        results.push(result);
+        continue;
+      }
+
+      const title = product.find(' .lnk').text().trim() || 'Без названия';
+      const matchBrand = BRANDS.find((brand) =>
+        title.toLowerCase().includes(brand.toLowerCase()),
+      );
+
+      if (!matchBrand) {
+        results.push(result);
+        continue;
+      }
+
+      const rawPrice =
+        product.find('.price .new_price .price__value').text().trim() ||
+        BASICS.zero;
+      const price = rawPrice.replace(/\s*₽$/, '');
+
+      results.push({
+        shop: SOURCE_WEBPAGE_KEYS.recamgr,
+        found: true,
+        name: title,
+        price,
+      });
+
+      console.log(`Search time for "${name}":`, performance.now() - start);
+    } catch (error: any) {
+      console.error(
+        `${SOURCE_WEBPAGE_KEYS.recamgr} Error for "${name}":`,
+        error,
+      );
+      results.push(result);
     }
-    result.name = title;
-    const rawPrice =
-      product.find('.price .new_price .price__value').text().trim() ||
-      BASICS.zero;
-    const price = rawPrice.replace(/\s*₽$/, '');
-
-    result.price = price;
-    result.found = true;
-    console.log(performance.now() - start);
-
-    return result;
-  } catch (error: any) {
-    console.error(`${SOURCE_WEBPAGE_KEYS.recamgr} Error:`, error);
-    return { shop: SOURCE_WEBPAGE_KEYS.recamgr, found: false };
   }
+
+  return results;
 }
