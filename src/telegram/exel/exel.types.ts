@@ -1,6 +1,7 @@
 export type InputExelFile = {
   'кат.номер': string;
   'кол-во'?: number;
+  '№': string;
 };
 
 export type ParsedRow = {

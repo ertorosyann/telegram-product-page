@@ -11,15 +11,13 @@ import { ScrapedProduct } from 'src/types/context.interface';
 export async function scrapeSeltex(
   productNumbers: string[],
 ): Promise<ScrapedProduct[]> {
-
-
   const results: ScrapedProduct[] = [];
   await Promise.all(
     productNumbers.map(async (productNumber) => {
-      console.log('stea');
+      const cleaanProductNumber = productNumber.replace(/\//g, '');
 
       const start = performance.now();
-      const url = `${SOURCE_URLS.seltex}${productNumber}`;
+      const url = `${SOURCE_URLS.seltex}${cleaanProductNumber}`;
       const result: ScrapedProduct = {
         shop: SOURCE_WEBPAGE_KEYS.seltex,
         found: false,
@@ -63,7 +61,6 @@ export async function scrapeSeltex(
           rawPrice && !isNaN(+rawPrice) ? rawPrice : BASICS.empotyString;
         result.found = true;
 
-        console.log(performance.now() - start, `seltex: ${productNumber}`);
         results.push(result);
       } catch {
         results.push(result);

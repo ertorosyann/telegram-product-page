@@ -28,8 +28,8 @@ const scrapers: {
   fn: (productNames: string[], page?: any) => Promise<ScrapedProduct[]>;
   usePuppeteer: boolean;
 }[] = [
-  // { name: 'Seltex', fn: scrapeSeltex, usePuppeteer: false },
-  // { name: 'Pcagroup', fn: scrapePcaGroup, usePuppeteer: false },
+  { name: 'Seltex', fn: scrapeSeltex, usePuppeteer: false }, //+
+  { name: 'Pcagroup', fn: scrapePcaGroup, usePuppeteer: false },
   // { name: 'Imachinery', fn: scrapeIMachinery, usePuppeteer: false },
   // { name: 'Recamgr', fn: scrapeRecamgr, usePuppeteer: false }, // fast
   // { name: 'Spb.camsparts', fn: scrapeCamsParts, usePuppeteer: false }, //fast
@@ -43,7 +43,7 @@ const scrapers: {
   // { name: 'Dv-Pt', fn: scrapeDvPt, usePuppeteer: false },
   // { name: 'b2b.ixora-auto', fn: scrapeIxora, usePuppeteer: false }, // dandax patasxan chi tali
   // { name: 'Intertrek.info', fn: intertrek, usePuppeteer: false }, // դանդաղոտ կայքը դանդաղ է բեռնվում
-  { name: 'istk-deutz', fn: scrapeIstkDeutz, usePuppeteer: false }, // պրաբելները հանել ես պրոդուկտը չի բերում // 7000
+  // { name: 'istk-deutz', fn: scrapeIstkDeutz, usePuppeteer: false }, // պրաբելները հանել ես պրոդուկտը չի բերում // 7000
 ];
 
 export async function scrapeAll(
@@ -110,7 +110,11 @@ export async function scrapeAll(
 
   const allResults = [...puppeteerResults, ...axiosResults];
 
-  console.log('sax', allResults);
-
   return allResults;
+  // const results = await Promise.all(scrapers.map((s) => s.fn(productNames)));
+
+  // const res = results.map((i) => i[0]);
+  // console.log(' = res', res);
+
+  // return res;
 }

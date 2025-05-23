@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Context } from 'src/types/context.interface';
 import { Message } from 'telegraf/typings/core/types/typegram';
-import { parseExcelFromTelegram, readLocalExcel } from '../exel/parse.and.read';
+import {
+  parseExcelFromTelegram,
+  readExcelFromYandexDisk,
+} from '../exel/parse.and.read';
 import { compareItems } from '../exel/comparator.exelFiles';
 import { createResultExcelBuffer } from '../exel/generator.createResultExcel';
 import { InputExelFile, ParsedRow } from '../exel/exel.types';
@@ -37,14 +40,21 @@ export class DocumentHandler {
         return ctx.reply('Ваш файл Excel пустой.');
       }
 
-      const skladItems: ParsedRow[] = readLocalExcel(
-        '/Users/romiksargsayn/Desktop/sklad2.xlsx',
+      const skladItems: ParsedRow[] = await readExcelFromYandexDisk(
+        'https://disk.yandex.ru/i/FE5LjEWujhR0Xg',
       );
+
+      console.log(skladItems);
 
       await ctx.reply(
         '🌐 Идёт поиск по сайтам поставщиков. Пожалуйста, подождите...',
       );
+      const start = performance.now();
       const { messages, rows } = await compareItems(inputItems, skladItems);
+      console.error(
+        (performance.now() - start) / 1000,
+        'verjanakan ardunqn e ',
+      ); // output in seconds
 
       const resultBuffer = createResultExcelBuffer(rows);
 

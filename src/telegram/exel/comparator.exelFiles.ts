@@ -5,8 +5,6 @@ type PriceInfo = { price: number; shopName: string };
 
 function runScrapeWorker(partNumber: string): Promise<any> {
   return new Promise((resolve, reject) => {
-    console.log('number = ', partNumber);
-
     const worker = new Worker(__dirname + '/scrapeWorker.js');
 
     worker.postMessage(partNumber);
@@ -45,6 +43,10 @@ export async function compareItems(
     if (index >= inputItems.length) return;
 
     const inputItem = inputItems[index++];
+    console.log(
+      inputItem,
+      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
+    );
     const partNumber = inputItem['кат.номер'];
     const inputQty = inputItem['кол-во'] ?? 0;
 
@@ -57,6 +59,8 @@ export async function compareItems(
 
       // Ищем цену на складе
       const skladMatch = skladItems.find((s) => s['кат.номер'] === partNumber);
+      console.log(skladMatch);
+
       const priceSklad = skladMatch?.['цена, RUB'] ?? 0;
 
       // Инициализируем цены магазинов

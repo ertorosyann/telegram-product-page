@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Context, ScrapedProduct } from 'src/types/context.interface';
-import { scrapeAll } from '../scraper';
+import { Context } from 'src/types/context.interface';
+// import { scrapeAll } from '../scraper';
 import { Message } from 'telegraf/typings/core/types/typegram';
 import { getMainMenuKeyboard } from '../utils/manu';
 import { normalizeInput } from '../utils/validator';
 import { UsersService } from '../authorization/users.service';
+import { readExcelFromYandexDisk } from '../exel/parse.and.read';
+import { ParsedRow, ResultRow } from '../exel/exel.types';
+import { compareItems } from '../exel/comparator.exelFiles';
 
 @Injectable()
 export class TextHandler {
@@ -15,53 +18,44 @@ export class TextHandler {
       const start = performance.now();
       const message = ctx.message as Message.TextMessage;
       const textMessage = message?.text?.trim();
-      console.log(textMessage);
 
       if (!textMessage) {
         await ctx.reply('❌ Пожалуйста, отправьте текстовое сообщение.');
         return;
       }
-      // const validation = validatePartInfo(textMessage);
-      // if (!validation.isValid) {
-      //   await ctx.reply(validation.errorMessage);
-      //   return;
-      // }
 
       await ctx.reply(
         '🔄 Запрос принят! Ищем информацию, пожалуйста, подождите...',
       );
-      let [nameItem] = textMessage.split(',');
-      if (!nameItem) {
+
+      // let [nameItem] = textMessage.split(',');
+      if (!textMessage) {
         await ctx.reply(
           '❌ Неверный формат данных. Пожалуйста, укажите номер детали, количество и бренд через запятую.',
         );
         return;
       }
 
-      nameItem = normalizeInput(nameItem);
+      const nameItem = normalizeInput(textMessage);
 
       try {
         /* ─────────────── изменено: now scrapeAll returns ScrapedProduct[] ─────────────── */
-        const products: ScrapedProduct[] = await scrapeAll([
-          // 'PBD-275',
-          // 'FT140FLLED',
-          // 'FT140FLLED',
-          // 'FT140FLLED',
-          '04904728',
-          'FT140FLLEDsa',
-          'DV00-00001235',
-          // '',
-          '12345',
-          'KR4004N',
-          '600-813-4420',
-          '2375059'
-          // '53214',
-          // '1979322',
-        ]);
-
+        // const products: ScrapedProduct[] = await scrapeAll([nameItem]);
+        const skladItems: ParsedRow[] = await readExcelFromYandexDisk(
+          'https://disk.yandex.ru/i/FE5LjEWujhR0Xg',
+        );
+        const { rows } = await compareItems(
+          [
+            {
+              '№': '1',
+              'кат.номер': nameItem.trim(),
+            },
+          ],
+          skladItems,
+        );
         /* ──────────────────────────────────────────────────────────────────────────────── */
 
-        const msg = formatResults(products);
+        const msg = formatResults(rows);
 
         await ctx.reply(msg);
       } catch (error) {
@@ -113,20 +107,36 @@ export class TextHandler {
 }
 
 // util/format-result.ts
-function formatResults(results: ScrapedProduct[]): string {
+function formatResults(results: ResultRow[]): string {
   if (!results.length) {
     return '❌ Ничего не найдено.';
   }
 
-  const validResults = results
-    .filter((result) => result.found && result.price)
-    .sort((a, b) => a.price - b.price);
+  const row = results[0]; // обрабатываем только первую строку
 
-  if (!validResults.length) {
-    return '❌ Ничего не найдено.';
+  const excludeKeys = [
+    'name',
+    'kalichestvo',
+    'luchshayaCena',
+    'summa',
+    'luchshiyPostavshik',
+  ];
+
+  const prices: { shop: string; price: number }[] = Object.entries(row)
+    .filter(
+      ([key, value]) =>
+        !excludeKeys.includes(key) && typeof value === 'number' && value > 0,
+    )
+    .map(([shop, price]) => ({
+      shop,
+      price: Number(price), // Явное преобразование к числу
+    }));
+
+  if (!prices.length) {
+    return '❌ Цены не найдены.';
   }
 
-  const best = validResults[0];
+  const best = prices.reduce((min, cur) => (cur.price < min.price ? cur : min));
 
-  return `✅ *Лучшая цена найдена!*\n\n🏬 Магазин: *${best.shop}*\n🔧 Деталь: _${best.name}_\n💰 Цена: *${best.price}*`;
+  return `✅ *Лучшая цена найдена!*\n\n🏬 Магазин: *${best.shop}*\n🔧 Деталь: _${row.name}_\n💰 Цена: *${best.price}*`;
 }
