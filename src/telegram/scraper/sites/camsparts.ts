@@ -6,22 +6,22 @@ import {
   BRANDS,
   BASICS,
 } from 'src/constants/constants';
+
 import { ScrapedProduct } from 'src/types/context.interface';
 export async function scrapeCamsParts(
-  names: string[],
+  productNumbers: string[],
 ): Promise<ScrapedProduct[]> {
+  const start = performance.now();
   const results: ScrapedProduct[] = [];
 
-  for (const name of names) {
+  for (const name of productNumbers) {
     try {
-      const start = performance.now();
       const searchQuery = name.trim().replace(/\s+/g, '+');
       const searchUrl = `${SOURCE_URLS.camsparts}${searchQuery}`;
 
       const response = await axios.get(searchUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0' },
       });
-      console.log(`Search time for "${name}":`, performance.now() - start);
 
       const $ = cheerio.load(response.data);
       const firstProduct = $('.product__list .product').first();
@@ -46,10 +46,24 @@ export async function scrapeCamsParts(
       const fullTitle = $$('.shop_product__title[itemprop="name"]')
         .text()
         .trim();
+      const titleArray = fullTitle.split(' ');
 
-      const matchedBrand = BRANDS.find((brand) =>
-        fullTitle.toLowerCase().includes(brand.toLowerCase()),
-      );
+      let matchedBrand: boolean | string | undefined = BRANDS.find((brand) => {
+        const regex = new RegExp(`\\b${brand}\\b`, 'i'); // \b ensures whole word match
+        return regex.test(fullTitle);
+      });
+      if (!matchedBrand) {
+        for (const word of titleArray) {
+          if (
+            BRANDS.some((brand) => brand.toLowerCase() === word.toLowerCase())
+          ) {
+            matchedBrand = true;
+            break;
+          }
+        }
+      }
+
+      // const matchedBrand = BRANDS.find((brand) => {});
 
       if (!matchedBrand) {
         results.push({
@@ -84,6 +98,13 @@ export async function scrapeCamsParts(
         found: false,
         name,
       });
+    } finally {
+      console.log(results);
+
+      console.log(
+        `Search time for "${productNumbers[0]} in camsparts":`,
+        performance.now() - start,
+      );
     }
   }
 

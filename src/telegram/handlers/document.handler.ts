@@ -44,18 +44,18 @@ export class DocumentHandler {
         'https://disk.yandex.ru/i/FE5LjEWujhR0Xg',
       );
 
-      console.log(skladItems);
-
       await ctx.reply(
         '🌐 Идёт поиск по сайтам поставщиков. Пожалуйста, подождите...',
       );
       const start = performance.now();
-      const { messages, rows } = await compareItems(inputItems, skladItems);
 
+      console.log('input = ', skladItems);
+
+      const { messages, rows } = await compareItems(inputItems, skladItems);
       console.error(
         (performance.now() - start) / 1000,
         'verjanakan ardunqn e ',
-      );
+      ); // output in seconds
 
       const resultBuffer = createResultExcelBuffer(rows);
 
@@ -71,7 +71,7 @@ export class DocumentHandler {
         ctx.from?.username || '',
         this.userService,
       );
-      // console.log(x);
+      // x);
 
       await ctx.reply('👇 Выберите, что хотите сделать дальше:', {
         parse_mode: 'MarkdownV2',

@@ -6,10 +6,12 @@ import {
 } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
 
-export async function scrapeDvPt(names: string[]): Promise<ScrapedProduct[]> {
+export async function scrapeDvPt(
+  productNumbers: string[],
+): Promise<ScrapedProduct[]> {
   const results: ScrapedProduct[] = [];
   const browser = await puppeteer.launch({ headless: true });
-
+  const start = performance.now();
   try {
     const page = await browser.newPage();
 
@@ -19,7 +21,7 @@ export async function scrapeDvPt(names: string[]): Promise<ScrapedProduct[]> {
     );
     await page.setViewport({ width: 1280, height: 800 });
 
-    for (const name of names) {
+    for (const name of productNumbers) {
       const result: ScrapedProduct = {
         found: false,
         shop: SOURCE_WEBPAGE_KEYS.dvpt,
@@ -106,10 +108,14 @@ export async function scrapeDvPt(names: string[]): Promise<ScrapedProduct[]> {
     }
 
     await browser.close();
+    console.log(
+      `Search time for "${productNumbers[0]} in shtren":`,
+      performance.now() - start,
+    );
     return results;
   } catch (browserErr) {
     console.error('Failed to launch browser:', browserErr);
-    return names.map(() => ({
+    return productNumbers.map(() => ({
       shop: SOURCE_WEBPAGE_KEYS.dvpt,
       found: false,
     }));

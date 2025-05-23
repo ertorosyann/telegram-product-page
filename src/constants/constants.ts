@@ -1,15 +1,12 @@
 export const BRANDS = [
   'CAT',
-  'Cummins',
-  'Deutz',
-  'John Deere',
-  'Perkins',
-  'Volvo',
-  'Komatsu',
-  'Scania',
-  'FRISTOM',
-  'KRAUF',
-  'FORD',
+  'CUMMINS',
+  'DEUTZ',
+  'JOHN DEERE',
+  'PERKINS',
+  'VOLVO',
+  'KOMATSU',
+  'SCANIA',
 ];
 export const SOURCE_URLS = {
   udtTechnika: 'https://www.udt-technika.ru/',

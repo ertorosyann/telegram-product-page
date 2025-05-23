@@ -9,11 +9,12 @@ import {
 import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapePcaGroup(
-  names: string[],
+  productNumbers: string[],
 ): Promise<ScrapedProduct[]> {
+  const start = performance.now();
   const results: ScrapedProduct[] = [];
 
-  for (const name of names) {
+  for (const name of productNumbers) {
     const searchQuery = name.trim().replace(/\s+/g, '+');
     const searchUrl = `${SOURCE_URLS.pcagroup}${searchQuery}`;
 
@@ -46,7 +47,7 @@ export async function scrapePcaGroup(
 
       const title = productCard.find('.card__title').text().trim();
       const price = productCard.find('.price').text().trim().replace(/\D/g, '');
-
+      const cleanPrice = price && !isNaN(+price) ? price : BASICS.zero;
       let brand: string | boolean = BRANDS.some((b) => {
         if (title.toLowerCase().includes(b.toLowerCase())) {
           return b;
@@ -75,7 +76,7 @@ export async function scrapePcaGroup(
         shop: SOURCE_WEBPAGE_KEYS.pcagroup,
         found: true,
         name: title,
-        price: price || BASICS.zero,
+        price: cleanPrice,
       });
     } catch (error: any) {
       console.error(`${SOURCE_WEBPAGE_KEYS.pcagroup} Error:`, error);
@@ -83,6 +84,13 @@ export async function scrapePcaGroup(
         shop: SOURCE_WEBPAGE_KEYS.pcagroup,
         found: false,
       });
+    } finally {
+      console.log(results);
+
+      console.log(
+        `Search time for "${productNumbers[0]} in pcagroup":`,
+        performance.now() - start,
+      );
     }
   }
 

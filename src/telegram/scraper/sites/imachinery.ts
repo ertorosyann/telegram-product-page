@@ -11,6 +11,7 @@ import { ScrapedProduct } from 'src/types/context.interface';
 export async function scrapeIMachinery(
   productNumbers: string[],
 ): Promise<ScrapedProduct[]> {
+  const start = performance.now();
   const headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
   };
@@ -38,7 +39,7 @@ export async function scrapeIMachinery(
         if (matchedBrand) {
           result.name = name;
           result.price =
-            price.trim() !== '' && !isNaN(+price) ? price : BASICS.empotyString;
+            price.trim() !== '' && !isNaN(+price) ? price : BASICS.zero;
           result.found = true;
           return false; // break .each
         }
@@ -53,9 +54,18 @@ export async function scrapeIMachinery(
 
   const settledResults = await Promise.allSettled(tasks);
 
-  return settledResults.map((res) =>
-    res.status === 'fulfilled'
-      ? res.value
-      : { shop: SOURCE_WEBPAGE_KEYS.imachinery, found: false },
+  const res = settledResults.map((res) => {
+    if (res.status === 'fulfilled') {
+      return res.value;
+    } else {
+      return { shop: SOURCE_WEBPAGE_KEYS.imachinery, found: false };
+    }
+  });
+  console.log(res);
+
+  console.log(
+    `Search time for "${productNumbers[0]} in imachinery":`,
+    performance.now() - start,
   );
+  return res;
 }

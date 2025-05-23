@@ -30,7 +30,7 @@ export type ResultRow = {
   pcagroup: number;
   'spb.camsparts': number;
   voltag: number;
-  'dv-pt': number;
+  dvpt: number;
   recamgr: number;
   intertrek: number;
   kta50: number;

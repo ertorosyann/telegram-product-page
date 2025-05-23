@@ -7,7 +7,9 @@ import {
 } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
 
-export async function scrapeShtren(names: string[]): Promise<ScrapedProduct[]> {
+export async function scrapeShtren(
+  productNumbers: string[],
+): Promise<ScrapedProduct[]> {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
@@ -15,13 +17,27 @@ export async function scrapeShtren(names: string[]): Promise<ScrapedProduct[]> {
 
   const start = performance.now();
   try {
-    for (const name of names) {
+    for (const name of productNumbers) {
       const result: ScrapedProduct = {
         shop: SOURCE_WEBPAGE_KEYS.shtern,
         found: false,
       };
 
       try {
+        await page.setRequestInterception(true);
+        await page.setJavaScriptEnabled(false);
+        page.on('request', (req) => {
+          const resourceType = req.resourceType();
+          if (
+            ['image', 'stylesheet', 'font', 'media', 'script'].includes(
+              resourceType,
+            )
+          ) {
+            req.abort();
+          } else {
+            req.continue();
+          }
+        });
         await page.goto(SOURCE_URLS.shtern, {
           waitUntil: 'domcontentloaded',
           timeout: 30000,
@@ -38,13 +54,12 @@ export async function scrapeShtren(names: string[]): Promise<ScrapedProduct[]> {
             },
           );
         } catch {
-          console.error('Limit ended');
+          console.log('Limit ended');
         }
         if (!summaryElement) {
           continue;
         }
 
-        // Վերահաշվում ենք էջից
         const evaluationResult = await page.evaluate(
           (name, BRANDS, BASICS) => {
             const result: ScrapedProduct = {
@@ -100,8 +115,11 @@ export async function scrapeShtren(names: string[]): Promise<ScrapedProduct[]> {
       results.push(result);
     }
   } finally {
-    console.log('shtren', performance.now() - start);
-
+    console.log(results);
+    console.log(
+      `Search time for "${productNumbers[0]} in shtren":`,
+      performance.now() - start,
+    );
     await browser.close();
   }
 

@@ -29,14 +29,9 @@ export class TextHandler {
       );
 
       // let [nameItem] = textMessage.split(',');
-      if (!textMessage) {
-        await ctx.reply(
-          '❌ Неверный формат данных. Пожалуйста, укажите номер детали, количество и бренд через запятую.',
-        );
-        return;
-      }
-
+      console.log('naxnakan texty', textMessage);
       const nameItem = normalizeInput(textMessage);
+      console.log('normalized text', nameItem);
 
       try {
         /* ─────────────── изменено: now scrapeAll returns ScrapedProduct[] ─────────────── */
@@ -54,7 +49,6 @@ export class TextHandler {
           skladItems,
         );
         /* ──────────────────────────────────────────────────────────────────────────────── */
-
         const msg = formatResults(rows);
 
         await ctx.reply(msg);

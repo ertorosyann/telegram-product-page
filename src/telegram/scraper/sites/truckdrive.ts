@@ -1,5 +1,3 @@
-import * as puppeteer from 'puppeteer';
-
 import { ScrapedProduct } from 'src/types/context.interface';
 import {
   BASICS,
@@ -24,6 +22,7 @@ export async function scrapeTruckdrive(
     },
   });
 
+  console.log(response.data);
   // const browser = await puppeteer.launch({ headless: true });
   // const results: ScrapedProduct[] = [];
 

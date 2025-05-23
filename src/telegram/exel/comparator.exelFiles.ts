@@ -72,10 +72,10 @@ export async function compareItems(
       let intertrekPrice: PriceInfo = { price: 0, shopName: 'Intertrek.info' };
       let ixoraPrice: PriceInfo = { price: 0, shopName: 'b2b.ixora-auto' };
       let udtTechnikaPrice: PriceInfo = { price: 0, shopName: 'udtTechnika' };
-      let dvPtPrice: PriceInfo = { price: 0, shopName: 'dv-pt' };
+      let dvPtPrice: PriceInfo = { price: 0, shopName: 'dvpt' };
       let voltagPrice: PriceInfo = { price: 0, shopName: 'voltag' };
-      let mirDieselPrice: PriceInfo = { price: 0, shopName: 'mirdiesel' };
-      let truckdrivePrice: PriceInfo = { price: 0, shopName: 'truckdrive' };
+      // let mirDieselPrice: PriceInfo = { price: 0, shopName: 'mirdiesel' };
+      // let truckdrivePrice: PriceInfo = { price: 0, shopName: 'truckdrive' };
 
       const allPrices: PriceInfo[] = [{ price: priceSklad, shopName: 'sklad' }];
 
@@ -140,22 +140,22 @@ export async function compareItems(
               allPrices.push(entry);
               break;
             // ------------------------------------
-            case 'mirdiesel':
-              mirDieselPrice = entry;
-              allPrices.push(entry);
-              break;
+            // case 'mirdiesel':
+            //   mirDieselPrice = entry;
+            //   allPrices.push(entry);
+            //   break;
             case 'voltag':
               voltagPrice = entry;
               allPrices.push(entry);
               break;
-            case 'dv-pt':
+            case 'dvpt':
               dvPtPrice = entry;
               allPrices.push(entry);
               break;
-            case 'truckdrive':
-              truckdrivePrice = entry;
-              allPrices.push(entry);
-              break;
+            // case 'truckdrive':
+            //   truckdrivePrice = entry;
+            //   allPrices.push(entry);
+            //   break;
             default:
               break;
           }
@@ -226,11 +226,11 @@ export async function compareItems(
         // voltag: 0,
         voltag: voltagPrice.price,
         // 'dv-pt': 0,
-        'dv-pt': dvPtPrice.price,
-        // truckdrive: 0,
-        truckdrive: truckdrivePrice.price,
-        // mirdiesel: 0,
-        mirdiesel: mirDieselPrice.price,
+        dvpt: dvPtPrice.price,
+        truckdrive: 0,
+        // truckdrive: truckdrivePrice.price,
+        mirdiesel: 0,
+        // mirdiesel: mirDieselPrice.price,
         'vip.blumaq': 0,
         // 'vip.blumaq': vipBlumaqPrice.price,
         kta50: 0,

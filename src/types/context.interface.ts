@@ -18,6 +18,6 @@ export type ScrapedProduct = {
   name?: string;
   price?: any;
   shop?: string;
-  found: boolean;
+  found?: boolean;
   brand?: string;
 };

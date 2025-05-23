@@ -76,8 +76,6 @@ export async function scrapeIstkDeutz(
       result.price = price;
       result.found = true;
 
-      console.log(`${Math.round(performance.now() - start)}ms`);
-
       results.push(result);
     } catch (error) {
       console.error(`${SOURCE_WEBPAGE_KEYS.istk} Error:`, error);

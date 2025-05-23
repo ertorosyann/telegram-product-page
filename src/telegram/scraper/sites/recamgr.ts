@@ -7,12 +7,13 @@ import {
   SOURCE_WEBPAGE_KEYS,
 } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
+
 export async function scrapeRecamgr(
-  names: string[],
+  productNumbers: string[],
 ): Promise<ScrapedProduct[]> {
   const results: ScrapedProduct[] = [];
 
-  for (const name of names) {
+  for (const name of productNumbers) {
     const start = performance.now();
 
     const result: ScrapedProduct = {
@@ -63,16 +64,21 @@ export async function scrapeRecamgr(
         shop: SOURCE_WEBPAGE_KEYS.recamgr,
         found: true,
         name: title,
-        price,
+        price: price,
       });
-
-      console.log(`Search time for "${name}":`, performance.now() - start);
     } catch (error: any) {
       console.error(
         `${SOURCE_WEBPAGE_KEYS.recamgr} Error for "${name}":`,
         error,
       );
       results.push(result);
+    } finally {
+      console.log(results);
+
+      console.log(
+        `Search time for "${productNumbers[0]} in Recmagr":`,
+        performance.now() - start,
+      );
     }
   }
 

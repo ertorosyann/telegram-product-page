@@ -72,11 +72,6 @@ export async function intertrek(
         name: productName,
         price: priceNumber,
       });
-
-      console.log(
-        `Intertrek search for "${productCode}" took:`,
-        performance.now() - start,
-      );
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Unknown error occurred.';

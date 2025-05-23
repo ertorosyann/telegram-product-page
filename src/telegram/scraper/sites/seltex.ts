@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import * as cheerio from 'cheerio';
 import {
   BASICS,
@@ -24,7 +24,10 @@ export async function scrapeSeltex(
       };
 
       try {
-        const { data } = await axios.get(url, { timeout: 5000 });
+        const response: AxiosResponse<string> = await axios.get(url, {
+          timeout: 5000,
+        });
+        const data = response.data;
         const $ = cheerio.load(data);
 
         const row = $('.table tbody tr').eq(1); // 2-րդ տողը
@@ -57,13 +60,20 @@ export async function scrapeSeltex(
 
         const rawPrice = tds.eq(2).text().trim();
         result.name = name;
-        result.price =
-          rawPrice && !isNaN(+rawPrice) ? rawPrice : BASICS.empotyString;
+        result.price = rawPrice && !isNaN(+rawPrice) ? rawPrice : BASICS.zero;
+        console.log(result.price);
+
         result.found = true;
 
         results.push(result);
       } catch {
         results.push(result);
+      } finally {
+        console.log(results);
+        console.log(
+          `Search time for "${productNumbers[0]} in Seltex":`,
+          performance.now() - start,
+        );
       }
     }),
   );

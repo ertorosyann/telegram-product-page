@@ -12,6 +12,7 @@ interface VoltagResult {
 export async function scrapeVoltag(
   productNumbers: string[],
 ): Promise<VoltagResult[]> {
+  const start = performance.now();
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
@@ -29,10 +30,17 @@ export async function scrapeVoltag(
         page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
       ]);
 
-      const productUrl = await page.$eval(
-        'a[href*="/price/group/"]',
-        (el) => el.href,
-      );
+      const linkElement = await page.$('a[href*="/price/group/"]');
+      if (!linkElement) {
+        results.push({
+          shop: 'voltag',
+          found: false,
+          productNumber,
+        });
+        continue;
+      }
+
+      const productUrl = await page.evaluate((el) => el.href, linkElement);
 
       await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
 
@@ -41,7 +49,7 @@ export async function scrapeVoltag(
           const tbody = document.querySelector('tbody[aria-live="polite"]');
           return tbody && tbody.querySelectorAll('tr').length > 0;
         },
-        { timeout: 50000 },
+        { timeout: 5000 },
       );
 
       const matchedProduct = await page.evaluate((brands) => {
@@ -55,7 +63,7 @@ export async function scrapeVoltag(
           if (!brandCell) continue;
 
           const brand = brandCell.textContent?.trim() || '';
-          if (brands.includes(brand)) {
+          if (brands.includes(brand.toUpperCase())) {
             const priceCell = row.querySelectorAll('td')[6]; // փոփոխիր ըստ իրական դասավորության
             const price = priceCell?.textContent?.trim() || null;
             return { brand, price };
@@ -87,6 +95,12 @@ export async function scrapeVoltag(
         found: false,
         productNumber,
       });
+    } finally {
+      console.log(results);
+      console.log(
+        `Search time for "${productNumbers[0]} in Seltex":`,
+        performance.now() - start,
+      );
     }
   }
 
