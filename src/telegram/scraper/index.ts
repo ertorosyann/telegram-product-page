@@ -7,20 +7,15 @@ import { scrape74Parts } from './sites/74parts'; // done 100% ++++++++++++++++++
 import { scrapePcaGroup } from './sites/pcagroup'; // done 100% ++++++++++++++++++
 import { scrapeCamsParts } from './sites/camsparts'; // done 100% ++++++++++++++++++
 import { scrapeRecamgr } from './sites/recamgr'; // done 100% ++++++++++++++++++
-// import { scrapeIstkDeutz } from './sites/istk-deutz'; // done 100% ++++++++++++++++++
-// import { intertrek } from './sites/intertrek.info'; // done 100% ++++++++++++++++++
-// import { scrapeIxora } from './sites/ixora'; // done 100% ++++++++++++++++++  hamapatasxanox brand chka
-// import { scrapeImpart } from './sites/impart'; // done 100% ++++++++++++++++++
+import { scrapeIstkDeutz } from './sites/istk-deutz'; // done 100% ++++++++++++++++++
+import { intertrek } from './sites/intertrek.info'; // done 100% ++++++++++++++++++
+import { scrapeIxora } from './sites/ixora'; // done 100% ++++++++++++++++++  hamapatasxanox brand chka
 import { scrapeDvPt } from './sites/dv-pt'; //
 import { scrapeVoltag } from './sites/voltag'; //
-// import { scrapeMirDiesel } from './sites/mirdiesel'; // done 100% ++++++++++++++++++
-// import { scrapeTruckdrive } from './sites/truckdrive'; //piti nayvi errora qcum u chisht artikul dnenq toshni chi
+import { scrapeTruckdrive } from './sites/truckdrive'; //piti nayvi errora qcum u chisht artikul dnenq toshni chi
 import { scrapeShtren } from './sites/shtren'; // done 100% ++++++++++++++++++   miqich dandaxacnuma
 import { udtTechnika } from './sites/udtTechnika';
-
-// import { scrapeTruckmir } from './sites/truckmir'; // dandax
-// import { scrapeVipBlumaq } from './sites/vipBlumaq'; //need a  registrations
-// import { scrapeZiptehOnline } from './sites/ziptehOnline'; // need a registrations
+import { scrapeImpart } from './sites/impart'; // done 100% ++++++++++++++++++
 
 // Scrapers config
 const scrapers: {
@@ -38,13 +33,14 @@ const scrapers: {
   { name: 'udtTechnika', fn: udtTechnika, usePuppeteer: false }, // +  dandax
   { name: '74Parts', fn: scrape74Parts, usePuppeteer: false }, // + dandax
   { name: 'Dv-Pt', fn: scrapeDvPt, usePuppeteer: false }, // + dandax
+  { name: 'b2b.ixora-auto', fn: scrapeIxora, usePuppeteer: false },
+  { name: 'Intertrek.info', fn: intertrek, usePuppeteer: false }, //
+  { name: 'istk-deutz', fn: scrapeIstkDeutz, usePuppeteer: false }, //
+  { name: 'Truckdrive', fn: scrapeTruckdrive, usePuppeteer: false }, // anelu ban ka
+  { name: 'Impart', fn: scrapeImpart, usePuppeteer: false }, // anelu ban ka
 
-  // { name: 'b2b.ixora-auto', fn: scrapeIxora, usePuppeteer: false }, // dandax patasxan chi tali
-  // { name: 'Intertrek.info', fn: intertrek, usePuppeteer: false }, // դանդաղոտ կայքը դանդաղ է բեռնվում
-  // { name: 'istk-deutz', fn: scrapeIstkDeutz, usePuppeteer: false }, // պրաբելները հանել ես պրոդուկտը չի բերում // 7000
+  // { name: 'Mirdiesel', fn: scrapeMirDiesel, usePuppeteer: false }, // dont work empty page
   // { name: 'Truckmir', fn: scrapeTruckmir, usePuppeteer: false }, //
-  // { name: 'Truckdrive', fn: scrapeTruckdrive, usePuppeteer: false }, // anelu ban ka
-  // { name: 'Mirdiesel', fn: scrapeMirDiesel, usePuppeteer: false }, // dont work in current time webpage try later
 ];
 
 export async function scrapeAll(

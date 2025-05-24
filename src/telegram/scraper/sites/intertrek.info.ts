@@ -9,12 +9,10 @@ export async function intertrek(
   const results: ScrapedProduct[] = [];
 
   for (const productCode of productCodes) {
-    const start = performance.now();
-
     const result: ScrapedProduct = {
       shop: SOURCE_WEBPAGE_KEYS.intertrek,
       found: false,
-      name: productCode, // Որպես նախնական անուն վերադարձնում ենք մուտքի կոդը
+      name: productCode,
     };
 
     try {

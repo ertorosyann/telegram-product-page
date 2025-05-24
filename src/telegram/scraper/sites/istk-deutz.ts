@@ -1,15 +1,15 @@
-import puppeteer, { Page } from 'puppeteer';
+import puppeteer from 'puppeteer';
 import { SOURCE_URLS, SOURCE_WEBPAGE_KEYS } from 'src/constants/constants';
 import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeIstkDeutz(
-  names: string[],
+  productNumbers: string[],
   // page: Page,
 ): Promise<ScrapedProduct[]> {
   const results: ScrapedProduct[] = [];
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-  for (const name of names) {
+  for (const name of productNumbers) {
     const start = performance.now();
 
     const result: ScrapedProduct = {
@@ -32,7 +32,19 @@ export async function scrapeIstkDeutz(
         }),
         page.keyboard.press('Enter'),
       ]);
+      // ✅ Check if "not found" message is present
+      const notFoundTextExists = await page
+        .$eval('p font.notetext', (el) =>
+          el.textContent?.includes(
+            'К сожалению, на ваш поисковый запрос ничего не найдено.',
+          ),
+        )
+        .catch(() => false); // If the element is not found, safely return false
 
+      if (notFoundTextExists) {
+        results.push(result); // result.found is already false
+        continue;
+      }
       const productLinkElement = await page.$(
         'tbody tr .arrivals_product_title a',
       );
@@ -65,10 +77,17 @@ export async function scrapeIstkDeutz(
         (el) => el.textContent?.trim() || 'No title found',
       );
 
-      const priceText = await page.$eval(
-        'div.price',
-        (el) => el.textContent?.trim() || '',
-      );
+      let priceText = '';
+
+      const priceElement =
+        (await page.$('.price_noauth .price')) || (await page.$('div.price'));
+
+      if (priceElement) {
+        priceText = await page.evaluate(
+          (el) => el.textContent?.trim() || '',
+          priceElement,
+        );
+      }
 
       const price = parseInt(priceText.replace(/[^\d]/g, ''), 10) || 0;
 
@@ -77,6 +96,11 @@ export async function scrapeIstkDeutz(
       result.found = true;
 
       results.push(result);
+      console.log(results);
+      console.log(
+        `Search time for "${productNumbers[0]} in istk":`,
+        performance.now() - start,
+      );
     } catch (error) {
       console.error(`${SOURCE_WEBPAGE_KEYS.istk} Error:`, error);
       results.push(result);

@@ -11,7 +11,7 @@ export async function scrapeIxora(
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
   const results: ScrapedProduct[] = [];
-
+  const start = performance.now();
   try {
     await page.setRequestInterception(true);
     page.on('request', (req) => {
@@ -32,17 +32,37 @@ export async function scrapeIxora(
         await page.type('#searchField', productNumber);
         await page.keyboard.press('Enter');
 
-        await page.waitForSelector('.SearchResultTableRetail', {
-          timeout: 15000,
-        });
+        const resultTableSelector = '.SearchResultTableRetail';
+        const noResultsSelector = '.search-result-container__title';
+
+        let found = false;
+
+        try {
+          await Promise.race([
+            page.waitForSelector(resultTableSelector, { timeout: 7000 }),
+            page.waitForSelector(noResultsSelector, { timeout: 7000 }),
+          ]);
+
+          // Check if the table appeared
+          found = (await page.$(resultTableSelector)) !== null;
+        } catch {
+          console.log(
+            'Neither table nor "no results" message appeared in time',
+          );
+        }
+
+        if (!found) {
+          console.log('No product found, skipping...');
+          return [{ shop: SOURCE_WEBPAGE_KEYS.ixora, found: false }];
+        }
 
         const scraped: ScrapedProduct = await page.evaluate(
           (productNumber, BRANDS) => {
             const item = document.querySelector('.SearchResultTableRetail');
-            if (!item) return { shop: 'ixora', found: false };
+            if (!item) return { shop: 'ixora', found: false, esa: 1 };
 
             const firstRow = item.querySelector('tbody tr.O');
-            if (!firstRow) return { shop: 'ixora', found: false };
+            if (!firstRow) return { shop: 'ixora', found: false, esa: 2 };
 
             const title =
               firstRow
@@ -98,6 +118,11 @@ export async function scrapeIxora(
       found: false,
     }));
   }
+  console.log(results);
 
+  console.log(
+    `Search time for "${productNumbers[0]} in imachinery":`,
+    performance.now() - start,
+  );
   return results;
 }
