@@ -5,10 +5,13 @@ export async function getMainMenuKeyboard(
   username: string,
   usersService: UsersService,
 ) {
-  const templateLink = process.env.YANDEX_LINK || '';
-
   const buttons: any[][] = [
-    [Markup.button.url('📥 Скачать шаблон Excel', templateLink)],
+    [
+      Markup.button.callback(
+        '📥 Скачать шаблон Excel',
+        'template_excel_download',
+      ),
+    ],
   ];
   // const buttons = [
   //   [Markup.button.url('📥 Скачать шаблон Excel', templateLink)],

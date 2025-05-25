@@ -28,10 +28,7 @@ export class TextHandler {
         '🔄 Запрос принят! Ищем информацию, пожалуйста, подождите...',
       );
 
-      // let [nameItem] = textMessage.split(',');
-      console.log('naxnakan texty', textMessage);
       const nameItem = normalizeInput(textMessage);
-      console.log('normalized text', nameItem);
 
       try {
         /* ─────────────── изменено: now scrapeAll returns ScrapedProduct[] ─────────────── */
@@ -39,6 +36,7 @@ export class TextHandler {
         const skladItems: ParsedRow[] = await readExcelFromYandexDisk(
           'https://disk.yandex.ru/i/FE5LjEWujhR0Xg',
         );
+
         const { rows } = await compareItems(
           [
             {

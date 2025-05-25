@@ -23,22 +23,21 @@ const scrapers: {
   fn: (productNames: string[], page?: any) => Promise<ScrapedProduct[]>;
   usePuppeteer: boolean;
 }[] = [
-  { name: 'Seltex', fn: scrapeSeltex, usePuppeteer: false }, //+ fast
-  { name: 'Pcagroup', fn: scrapePcaGroup, usePuppeteer: false }, // + fast
-  { name: 'Imachinery', fn: scrapeIMachinery, usePuppeteer: false }, //+ fast
-  { name: 'Recamgr', fn: scrapeRecamgr, usePuppeteer: false }, // + fast
-  { name: 'Spb.camsparts', fn: scrapeCamsParts, usePuppeteer: false }, // + fast
-  { name: 'Shtren', fn: scrapeShtren, usePuppeteer: false }, // + dandax 5000
-  { name: 'Voltag', fn: scrapeVoltag, usePuppeteer: false }, // + dandax
-  { name: 'udtTechnika', fn: udtTechnika, usePuppeteer: false }, // +  dandax
-  { name: '74Parts', fn: scrape74Parts, usePuppeteer: false }, // + dandax
-  { name: 'Dv-Pt', fn: scrapeDvPt, usePuppeteer: false }, // + dandax
+  // { name: 'Seltex', fn: scrapeSeltex, usePuppeteer: false }, //+ fast
+  // { name: 'Pcagroup', fn: scrapePcaGroup, usePuppeteer: false }, // + fast
+  // { name: 'Imachinery', fn: scrapeIMachinery, usePuppeteer: false }, //+ fast
+  // { name: 'Recamgr', fn: scrapeRecamgr, usePuppeteer: false }, // + fast
+  // { name: 'Spb.camsparts', fn: scrapeCamsParts, usePuppeteer: false }, // + fast
+  // { name: 'Shtren', fn: scrapeShtren, usePuppeteer: false }, // + dandax 5000
+  // { name: 'Voltag', fn: scrapeVoltag, usePuppeteer: false }, // + dandax
+  // { name: 'udtTechnika', fn: udtTechnika, usePuppeteer: false }, // +  dandax
+  // { name: '74Parts', fn: scrape74Parts, usePuppeteer: false }, // + dandax
+  // { name: 'Dv-Pt', fn: scrapeDvPt, usePuppeteer: false }, // + dandax
   { name: 'b2b.ixora-auto', fn: scrapeIxora, usePuppeteer: false },
-  { name: 'Intertrek.info', fn: intertrek, usePuppeteer: false }, //
-  { name: 'istk-deutz', fn: scrapeIstkDeutz, usePuppeteer: false }, //
-  { name: 'Truckdrive', fn: scrapeTruckdrive, usePuppeteer: false }, // anelu ban ka
-  { name: 'Impart', fn: scrapeImpart, usePuppeteer: false }, // anelu ban ka
-
+  // { name: 'Intertrek.info', fn: intertrek, usePuppeteer: false }, //
+  // { name: 'istk-deutz', fn: scrapeIstkDeutz, usePuppeteer: false }, //
+  // { name: 'Truckdrive', fn: scrapeTruckdrive, usePuppeteer: false }, // anelu ban ka
+  // { name: 'Impart', fn: scrapeImpart, usePuppeteer: false }, // anelu ban ka
   // { name: 'Mirdiesel', fn: scrapeMirDiesel, usePuppeteer: false }, // dont work empty page
   // { name: 'Truckmir', fn: scrapeTruckmir, usePuppeteer: false }, //
 ];

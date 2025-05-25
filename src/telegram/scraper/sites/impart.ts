@@ -23,7 +23,6 @@ export async function scrapeImpart(
       waitUntil: 'networkidle2',
       timeout: 60000,
     });
-    console.log('Current page URL:', page.url());
 
     const result: ScrapedProduct = await page.evaluate(
       (
@@ -80,7 +79,7 @@ export async function scrapeImpart(
               'td.search-result-table-name a .search-result-table-text',
             );
             const name = nameCell?.textContent?.trim() || '';
-            const fallbackName = article + (brand ? ` ${brand}` : '');
+            const fallbackName = brand || '';
 
             const priceCell = row.querySelector(
               'td .search-result-table-price > div:first-child',
@@ -125,7 +124,7 @@ export async function scrapeImpart(
             'td.search-result-table-name a .search-result-table-text',
           );
           const name = nameCell?.textContent?.trim() || '';
-          const fallbackName = article + (brand ? ` ${brand}` : '');
+          const fallbackName = brand || '';
 
           const priceCell = fallbackRow.querySelector(
             'td .search-result-table-price > div:first-child',
@@ -134,10 +133,11 @@ export async function scrapeImpart(
           const price = parsePrice(rawPrice);
 
           return {
-            name: name || fallbackName,
+            name: name,
             price,
             shop: KEYS_.impart,
             found: true,
+            brand: fallbackName,
           };
         }
 
@@ -161,7 +161,6 @@ export async function scrapeImpart(
       {
         shop: SOURCE_WEBPAGE_KEYS.impart,
         found: false,
-        price: BASICS.zero,
       },
     ];
   }

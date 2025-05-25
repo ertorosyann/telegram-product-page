@@ -13,19 +13,19 @@ import { Context } from 'src/types/context.interface';
 import { StartHandler } from './handlers/start.handler';
 import { TextHandler } from './handlers/text.handler';
 import { HelpHandler } from './handlers/help.handler';
-import { YandexDiskService } from '../yandex/yandex-disk.service';
 import { HttpService } from '@nestjs/axios';
 import { DocumentHandler } from './handlers/document.handler';
 import { UsersService } from './authorization/users.service';
 import { UserHandler } from './handlers/user.handleer';
 import { getMainMenuKeyboard } from './utils/manu';
+import { createReadStream, existsSync } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 @Update()
 export class TelegramService {
   constructor(
     @InjectBot() private readonly bot: Telegraf<Context>,
-    private readonly yandexDiskService: YandexDiskService,
     private readonly httpService: HttpService,
     private readonly startHandler: StartHandler,
     private readonly textHandler: TextHandler,
@@ -75,6 +75,24 @@ export class TelegramService {
       await this.textHandler.handle(ctx);
     } else {
       await ctx.reply('⚠️ Неподдерживаемый тип сообщения.');
+    }
+  }
+
+  @Action('template_excel_download')
+  async onTemplateExcelDownload(@Ctx() ctx: Context) {
+    let filePath = join(process.cwd(), 'dist', 'assets', 'template.xlsx');
+
+    if (!existsSync(filePath)) {
+      filePath = join(process.cwd(), 'src', 'assets', 'template.xlsx');
+    }
+    try {
+      await ctx.replyWithDocument({
+        source: createReadStream(filePath),
+        filename: 'Шаблон.xlsx',
+      });
+    } catch (error) {
+      console.error('Ошибка при отправке шаблона Excel:', error);
+      await ctx.reply('❌ Не удалось отправить файл шаблона.');
     }
   }
 

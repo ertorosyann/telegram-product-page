@@ -30,46 +30,78 @@ export async function scrapeSeltex(
         const data = response.data;
         const $ = cheerio.load(data);
 
-        const row = $('.table tbody tr').eq(1); // 2-րդ տողը
-        if (!row.length) {
+        const rows = $('.table tbody tr');
+        if (rows.length === 0) {
           results.push(result);
           return;
         }
 
-        const tds = row.find('td');
-        if (tds.length < 3) {
+        let matchedRow: cheerio.Cheerio | null = null;
+        let fallbackRow: cheerio.Cheerio | null = null;
+        let brandMatched: string | null = null;
+
+        // Проходим по строкам, пропуская заголовок (первая строка)
+        rows.slice(1).each((_, rowElem) => {
+          const row = $(rowElem);
+          const tds = row.find('td');
+          if (tds.length < 3) return; // если нет нужных колонок — пропускаем
+
+          // Убираем ссылку из ячейки с названием
+          const nameCell = tds.eq(1);
+          nameCell.find('a').remove();
+          const name = nameCell.text().trim().replace(/\s+/g, ' ');
+          if (!name) return;
+
+          // Проверяем, содержится ли бренд в названии
+          const matched = BRANDS.find((b) =>
+            name.toLowerCase().includes(b.toLowerCase()),
+          );
+
+          // Сохраняем первую попавшуюся строку как запасную
+          if (!fallbackRow) {
+            fallbackRow = row;
+          }
+
+          if (matched) {
+            matchedRow = row;
+            brandMatched = matched;
+            return false; // выход из each
+          }
+        });
+
+        // Выбираем найденную строку или запасную (первая)
+        const finalRow = matchedRow || fallbackRow!;
+        const finalTds = finalRow.find('td');
+
+        // Проверяем, достаточно ли колонок
+        if (finalTds.length < 3) {
           results.push(result);
           return;
         }
 
-        const nameCell = tds.eq(1);
+        // Извлекаем имя
+        const nameCell = finalTds.eq(1);
         nameCell.find('a').remove();
-        const name = nameCell.text().trim().replace(/\s+/g, ' ');
-        if (!name) {
-          results.push(result);
-          return;
-        }
+        result.name = nameCell.text().trim().replace(/\s+/g, ' ');
 
-        const brandMatch = BRANDS.find((b) =>
-          name.toLowerCase().includes(b.toLowerCase()),
-        );
-        if (!brandMatch) {
-          results.push(result);
-          return;
-        }
-
-        const rawPrice = tds.eq(2).text().trim();
-        result.name = name;
+        // Извлекаем цену
+        const rawPrice = finalTds.eq(2).text().trim();
         result.price = rawPrice && !isNaN(+rawPrice) ? rawPrice : BASICS.zero;
-        console.log(result.price);
 
+        // Помечаем, что удалось что-то найти
         result.found = true;
+
+        // Добавляем бренд, если найден
+        if (brandMatched) {
+          result.brand = brandMatched;
+        }
 
         results.push(result);
       } catch {
         results.push(result);
       } finally {
-        console.log(results);
+        console.log('res = ', result);
+
         console.log(
           `Search time for "${productNumbers[0]} in Seltex":`,
           performance.now() - start,
