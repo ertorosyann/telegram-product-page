@@ -35,7 +35,7 @@ export async function compareItems(
   const notFound: string[] = [];
   const resultRows: ResultRow[] = [];
 
-  const concurrencyLimit = 2;
+  const concurrencyLimit = 8;
   let running = 0;
   let index = 0;
 

@@ -27,23 +27,73 @@ export async function scrapeIMachinery(
         found: false,
       };
 
-      $('.result-item li').each((_, el) => {
-        const name = $(el).find('b').first().text().trim();
-        const priceText = $(el).find('b.pric').text().trim();
-        const price = priceText.replace(/^Цена:\s*/i, '').replace(/\D/g, '');
+      const bTag = $('b')
+        .filter((_, el) => $(el).text().includes('из'))
+        .first();
 
-        const matchedBrand = BRANDS.find((brand) =>
-          name.toLowerCase().includes(brand.toLowerCase()),
-        );
+      const matchB = $(bTag)
+        .text()
+        .match(/\d+\s*из\s*(\d+)/);
+      const countOfproduct = matchB ? parseInt(matchB[1], 10) : 0;
 
-        if (matchedBrand) {
-          result.name = name;
-          result.price =
-            price.trim() !== '' && !isNaN(+price) ? price : BASICS.zero;
-          result.found = true;
-          return false; // break .each
-        }
-      });
+      let fallbackProduct: ScrapedProduct | null = null;
+
+      $('.result-item .red-marker li')
+        .slice(0, countOfproduct)
+        .each((i, el) => {
+          const name = $(el).find('b').first().text().trim();
+          const splitedName = name.split(' ');
+          const matchName = splitedName.find(
+            (e) => e.toLowerCase() === productNumber.toLowerCase(),
+          );
+          if (!matchName) {
+            return false;
+          }
+
+          const priceText = $(el).find('b.pric').text().trim();
+          const price = priceText.replace(/^Цена:\s*/i, '').replace(/\D/g, '');
+
+          const productionInfo = $('.texte span')
+            .filter((_, el) => $(el).text().includes('Производство'))
+            .first()
+            .text()
+            .trim();
+
+          const brandMatch = productionInfo.match(/Производство\s*-\s*(\w+)/);
+          const brandName = brandMatch ? brandMatch[1] : null;
+
+          // Սահմանենք fallback եթե առաջին ապրանքն է
+          if (i === 0 && brandName) {
+            fallbackProduct = {
+              shop: SOURCE_WEBPAGE_KEYS.imachinery,
+              name,
+              price:
+                price.trim() !== '' && !isNaN(+price) ? price : BASICS.zero,
+              found: true,
+              brand: brandName,
+            };
+          }
+
+          // Եթե բրենդը չի գտնվել կամ դատարկ է
+          if (!brandName || !brandName.trim() || !name) {
+            return;
+          }
+
+          const matchedBrand = BRANDS.find((brand) => brandName === brand);
+          if (matchedBrand) {
+            result.name = name;
+            result.price =
+              price.trim() !== '' && !isNaN(+price) ? price : BASICS.zero;
+            result.found = true;
+            result.brand = brandName;
+            return false; // break .each
+          }
+        });
+
+      // Եթե որևէ բրենդ չի գտնվել, օգտագործի fallback
+      if (!result.found && fallbackProduct) {
+        return fallbackProduct;
+      }
 
       return result;
     } catch (error: unknown) {
@@ -61,8 +111,8 @@ export async function scrapeIMachinery(
       return { shop: SOURCE_WEBPAGE_KEYS.imachinery, found: false };
     }
   });
-  console.log(res);
 
+  console.log(res);
   console.log(
     `Search time for "${productNumbers[0]} in imachinery":`,
     performance.now() - start,

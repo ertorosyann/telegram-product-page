@@ -58,7 +58,7 @@ export async function scrapeAll(
   if (puppeteerScrapers.length) {
     const cluster = await Cluster.launch({
       concurrency: Cluster.CONCURRENCY_PAGE,
-      maxConcurrency: 2,
+      maxConcurrency: 4,
       puppeteerOptions: {
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],

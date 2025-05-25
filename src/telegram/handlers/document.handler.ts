@@ -61,7 +61,7 @@ export class DocumentHandler {
 
       const resultBuffer = createResultExcelBuffer(rows);
 
-      for (const msg of messages) await ctx.reply(msg);
+      // for (const msg of messages) await ctx.reply(msg);
 
       await ctx.replyWithDocument({
         source: resultBuffer,
