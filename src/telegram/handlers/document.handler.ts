@@ -1,19 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { Context } from 'src/types/context.interface';
 import { Message } from 'telegraf/typings/core/types/typegram';
-import {
-  parseExcelFromTelegram,
-  readExcelFromYandexDisk,
-} from '../exel/parse.and.read';
+import { parseExcelFromTelegram } from '../exel/parse.and.read';
 import { compareItems } from '../exel/comparator.exelFiles';
 import { createResultExcelBuffer } from '../exel/generator.createResultExcel';
 import { InputExelFile, ParsedRow } from '../exel/exel.types';
 import { getMainMenuKeyboard } from '../utils/manu';
 import { UsersService } from '../authorization/users.service';
+import { StockService } from 'src/stock/stock.service';
 
 @Injectable()
 export class DocumentHandler {
-  constructor(private readonly userService: UsersService) {}
+  // stockService: ParsedRow[];
+  constructor(
+    private readonly userService: UsersService,
+    private readonly stockService: StockService,
+  ) {}
 
   async handle(ctx: Context) {
     const message = ctx.message;
@@ -40,17 +42,17 @@ export class DocumentHandler {
         return ctx.reply('Ваш файл Excel пустой.');
       }
 
-      const skladItems: ParsedRow[] = await readExcelFromYandexDisk(
-        'https://disk.yandex.ru/i/FE5LjEWujhR0Xg',
+      const skladItems: ParsedRow[] = this.stockService.getStock();
+
+      console.log(
+        skladItems.length > 0 ? 'sklad is done !' : 'sklad dont loaded',
       );
 
       await ctx.reply(
         '🌐 Идёт поиск по сайтам поставщиков. Пожалуйста, подождите...',
       );
+
       const start = performance.now();
-
-      console.log('input = ', skladItems);
-
       const { messages, rows } = await compareItems(inputItems, skladItems);
       console.error(
         (performance.now() - start) / 1000,

@@ -11,9 +11,11 @@ import { UsersService } from './authorization/users.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './authorization/schema/schema';
 import { UserHandler } from './handlers/user.handleer';
+import { StockModule } from 'src/stock/stock.module';
 
 @Module({
   imports: [
+    StockModule,
     TelegrafModule.forRootAsync({
       useFactory: () => ({
         token: '7559322394:AAHHLZ08o2aK7wD6gctr5RTtDEvdrsFx0HU',
@@ -24,6 +26,7 @@ import { UserHandler } from './handlers/user.handleer';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), // ✅
   ],
   providers: [
+    StockModule,
     TelegramService,
     StartHandler,
     HelpHandler,

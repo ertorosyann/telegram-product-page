@@ -25,7 +25,6 @@ export async function scrape74Parts(
         {
           shop: SOURCE_WEBPAGE_KEYS.parts74,
           found: false,
-          price: BASICS.zero,
         },
       ];
     }
@@ -76,7 +75,7 @@ export async function scrape74Parts(
           }
         }
 
-        return { shop: shopKey, found: false, price: '0' };
+        return { shop: shopKey, found: false };
       },
       productNumber,
       BRANDS,

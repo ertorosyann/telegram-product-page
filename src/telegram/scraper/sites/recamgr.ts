@@ -16,10 +16,10 @@ export async function scrapeRecamgr(
   for (const name of productNumbers) {
     const start = performance.now();
 
-    const result: ScrapedProduct = {
+    const fallbackResult: ScrapedProduct = {
       shop: SOURCE_WEBPAGE_KEYS.recamgr,
       found: false,
-      name, // Որ անունը հետադարձվի, հարմար կլինի հետք ունենալ
+      name,
     };
 
     try {
@@ -33,50 +33,87 @@ export async function scrapeRecamgr(
 
       const $ = cheerio.load(response.data);
 
-      const check = $('h1.section__title').text().trim();
-      if (!check) {
-        results.push(result);
+      const searchLength = $('.text.search-legend');
+      const searchLengthText = searchLength.text().trim();
+      const matches = searchLengthText.match(/\d+/g);
+      const foundedProductCount = matches
+        ? parseInt(matches[matches.length - 1], 10)
+        : null;
+
+      if (!foundedProductCount) {
+        results.push(fallbackResult);
         continue;
       }
 
-      const product = $('.goods__item').first();
-      if (!product.length) {
-        results.push(result);
+      const products = $('.goods__item');
+      if (!products.length) {
+        results.push(fallbackResult);
         continue;
       }
+      const productsArray = products.toArray();
 
-      const title = product.find(' .lnk').text().trim() || 'Без названия';
-      const matchBrand = BRANDS.find((brand) =>
-        title.toLowerCase().includes(brand.toLowerCase()),
-      );
+      let matchedProduct: ScrapedProduct | null = null;
 
-      if (!matchBrand) {
-        results.push(result);
-        continue;
+      for (const el of productsArray) {
+        const product = $(el);
+        const title = product.find('.lnk').text().trim() || 'Без названия';
+
+        const words = title
+          .replace(/[()]/g, '')
+          .split(/\s+/)
+          .map((word) => word.toLowerCase());
+
+        const matchBrand = BRANDS.find((brand) => {
+          const brandLower = brand.toLowerCase();
+
+          return words.some((word) => word === brandLower);
+        });
+
+        const rawPrice =
+          product.find('.price .new_price .price__value').text().trim() ||
+          BASICS.zero;
+        const price = rawPrice.replace(/\s*₽$/, '');
+
+        if (matchBrand) {
+          matchedProduct = {
+            shop: SOURCE_WEBPAGE_KEYS.recamgr,
+            found: true,
+            name: title,
+            price: price,
+            brand: matchBrand,
+          };
+          break; // այստեղ կանգ ենք առնում, երբ գտնում ենք առաջինը
+        }
       }
 
-      const rawPrice =
-        product.find('.price .new_price .price__value').text().trim() ||
-        BASICS.zero;
-      const price = rawPrice.replace(/\s*₽$/, '');
+      if (matchedProduct) {
+        results.push(matchedProduct);
+      } else {
+        const firstProduct = products.first();
+        const title = firstProduct.find('.lnk').text().trim() || 'Без названия';
+        const rawPrice =
+          firstProduct.find('.price .new_price .price__value').text().trim() ||
+          BASICS.zero;
+        const price = rawPrice.replace(/\s*₽$/, '');
 
-      results.push({
-        shop: SOURCE_WEBPAGE_KEYS.recamgr,
-        found: true,
-        name: title,
-        price: price,
-      });
+        results.push({
+          shop: SOURCE_WEBPAGE_KEYS.recamgr,
+          found: true,
+          name: title,
+          price: price,
+        });
+      }
     } catch (error: any) {
       console.error(
         `${SOURCE_WEBPAGE_KEYS.recamgr} Error for "${name}":`,
         error,
       );
-      results.push(result);
+      results.push(fallbackResult);
     } finally {
       console.log(results);
 
       console.log(
-        `Search time for "${productNumbers[0]} in Recmagr":`,
+        `Search time for "${name} in Recmagr":`,
         performance.now() - start,
       );
     }

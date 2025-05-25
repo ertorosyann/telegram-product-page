@@ -5,13 +5,16 @@ import { Message } from 'telegraf/typings/core/types/typegram';
 import { getMainMenuKeyboard } from '../utils/manu';
 import { normalizeInput } from '../utils/validator';
 import { UsersService } from '../authorization/users.service';
-import { readExcelFromYandexDisk } from '../exel/parse.and.read';
-import { ParsedRow, ResultRow } from '../exel/exel.types';
+import { ResultRow } from '../exel/exel.types';
 import { compareItems } from '../exel/comparator.exelFiles';
+import { StockService } from 'src/stock/stock.service';
 
 @Injectable()
 export class TextHandler {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly stockService: StockService,
+  ) {}
 
   async handle(ctx: Context) {
     if (ctx.session.step === 'single_part_request') {
@@ -32,9 +35,10 @@ export class TextHandler {
 
       try {
         /* ─────────────── изменено: now scrapeAll returns ScrapedProduct[] ─────────────── */
-        // const products: ScrapedProduct[] = await scrapeAll([nameItem]);
-        const skladItems: ParsedRow[] = await readExcelFromYandexDisk(
-          'https://disk.yandex.ru/i/FE5LjEWujhR0Xg',
+
+        const skladItems = this.stockService.getStock();
+        console.log(
+          skladItems.length > 0 ? 'sklad is done !' : 'sklad dont loaded',
         );
 
         const { rows } = await compareItems(

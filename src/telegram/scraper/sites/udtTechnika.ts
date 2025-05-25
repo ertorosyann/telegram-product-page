@@ -29,7 +29,14 @@ export async function udtTechnika(
       await page.type('#parts', productNumber);
       await page.click('#button_search_1');
 
-      await page.waitForSelector('.table-responsive', { timeout: 5000 });
+      try {
+        await page.waitForSelector('.table-responsive', { timeout: 5000 });
+      } catch {
+        console.log(
+          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!! udtky-um chi gtel errorer talu stex',
+        );
+        return [result];
+      }
 
       const productRow = await page.$$eval(
         '#patientTable tbody tr',
