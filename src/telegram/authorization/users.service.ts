@@ -10,7 +10,6 @@ export interface IUser extends Document {
 }
 
 @Injectable()
-@Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<IUser>, // typed Model<IUser>
@@ -27,6 +26,7 @@ export class UsersService {
 
     return createdUser.save(); // save() returns a Promise<IUser>
   }
+
   async deleteUser(data: { telegramUsername: string }): Promise<string> {
     const user = await this.userModel
       .findOne({ telegramUsername: data.telegramUsername })
@@ -39,16 +39,19 @@ export class UsersService {
     await this.userModel.deleteOne({ telegramUsername: data.telegramUsername });
     return 'Пользователь удален';
   }
+
   async isAdmin(telegramUsername: string): Promise<boolean> {
     const user = await this.userModel.findOne({ telegramUsername });
 
-    return user?.role === 'admin' || user?.role === 'torosyann1';
+    return user?.role === 'admin' || user?.role === 'torossyann1';
   }
+
   async isUserAllowed(telegramUsername: string): Promise<boolean> {
     const user = await this.userModel.findOne({ telegramUsername });
 
     return !!user;
   }
+
   // user.service.ts
   async getAllUsers(): Promise<
     { telegramUsername: string; username?: string }[]

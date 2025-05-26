@@ -1,9 +1,10 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { title } from 'process';
 import {
   SOURCE_URLS,
   SOURCE_WEBPAGE_KEYS,
-  BRANDS,
+  // BRANDS,
   BASICS,
 } from 'src/constants/constants';
 
@@ -43,29 +44,30 @@ export async function scrapeCamsParts(
 
       const $$ = cheerio.load(productPage.data);
 
-      const fullTitle = $$('.shop_product__title[itemprop="name"]')
-        .text()
-        .trim();
-      const titleArray = fullTitle.split(' ');
+      // const fullTitle = $$('.shop_product__title[itemprop="name"]')
+      // .text()
+      // .trim();
+      // const titleArray = fullTitle.split(' ');
 
-      let matchedBrand: boolean | string | undefined = BRANDS.find((brand) => {
-        const regex = new RegExp(`\\b${brand}\\b`, 'i'); // \b ensures whole word match
-        return regex.test(fullTitle);
-      });
-      if (!matchedBrand) {
-        for (const word of titleArray) {
-          if (
-            BRANDS.some((brand) => brand.toLowerCase() === word.toLowerCase())
-          ) {
-            matchedBrand = true;
-            break;
-          }
-        }
-      }
+      // let matchedBrand: boolean | string | undefined = BRANDS.find((brand) => {
+      //   const regex = new RegExp(`\\b${brand}\\b`, 'i'); // \b ensures whole word match
+      //   return regex.test(fullTitle);
+      // });
+      // if (!matchedBrand) {
+      //   for (const word of titleArray) {
+      //     if (
+      //       BRANDS.some((brand) => brand.toLowerCase() === word.toLowerCase())
+      //     ) {
+      //       matchedBrand = true;
+      //       break;
+      //     }
+      //   }
+      // }
 
       // const matchedBrand = BRANDS.find((brand) => {});
+      const brendOfProduct = title.match(/(\b\w+)\s*\/\s*/);
 
-      if (!matchedBrand) {
+      if (!brendOfProduct) {
         results.push({
           shop: SOURCE_WEBPAGE_KEYS.camsparts,
           found: false,
@@ -87,6 +89,7 @@ export async function scrapeCamsParts(
         found: true,
         name: nameFromBreadcrumb,
         price,
+        brand: brendOfProduct[1],
       });
     } catch (error) {
       console.error(
