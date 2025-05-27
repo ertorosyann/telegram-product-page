@@ -1,6 +1,6 @@
 export const BRANDS = [
   'CAT',
-  'CUMMINS',
+  // 'CUMMINS',
   'DEUTZ',
   'JOHN DEERE',
   'PERKINS',
@@ -9,18 +9,18 @@ export const BRANDS = [
   'SCANIA',
 ];
 export const SOURCE_URLS = {
-  udtTechnika: 'https://www.udt-technika.ru/',
   seltex: 'https://www.seltex.ru/catalog/', //+
-  parts74: 'https://74parts.ru/catalog/?q=', // +
-  imachinery: 'https://imachinery.ru/search/?q=', //+
-  impart: 'https://impart.online/catalog/search/?q=', //+
   pcagroup: 'https://pcagroup.ru/search/?search=', // +
+  recamgr: 'https://recamgr.ru/products/?search=', //+
+  imachinery: 'https://imachinery.ru/search/?q=', //+
   camsparts: 'https://spb.camsparts.ru/katalog-cummins/?search=', //+
+  udtTechnika: 'https://www.udt-technika.ru/',
+  parts74: 'https://74parts.ru/catalog/?q=', // +
+  impart: 'https://impart.online/catalog/search/?q=', //+
   ixora: 'https://b2b.ixora-auto.ru/', //+
   shtern: 'https://xn--e1aqig3a.com/', //+
   voltag: 'https://voltag.ru/', //+
   dvpt: 'https://dv-pt.ru/', //+
-  recamgr: 'https://recamgr.ru/products/?search=', //+
   intertrek: 'http://intertrek.info/', //+
   truckdrive: 'https://truckdrive.ru/', //+
   istk: 'https://istk-deutz.ru/', // +

@@ -8,8 +8,9 @@ dotenv.config();
 
 @Module({
   imports: [
-    // 'mongodb+srv://eriktoros:210621Er$@bot.jrpaust.mongodb.net/?retryWrites=true&w=majority&appName=bot',
-    MongooseModule.forRoot('mongodb://localhost:27017/telegram-auth'),
+    MongooseModule.forRoot(
+      'mongodb+srv://eriktoros:210621Er$@bot.jrpaust.mongodb.net/?retryWrites=true&w=majority&appName=bot',
+    ),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     TelegramModule,
   ],

@@ -20,7 +20,7 @@ import { scrapeShtren } from './sites/shtren'; // done 100% ++++++++++++++++++  
 import { scrapeTruckmir } from './sites/truckmir'; // dandax
 
 import { scrapeMirDiesel } from './sites/mirdiesel'; // done 100% ++++++++++++++++++
-import { log } from 'node:console';
+import { InputText } from '../textMsg/comparator.textMsg';
 
 // Scrapers config
 const scrapers: {
@@ -28,31 +28,28 @@ const scrapers: {
   fn: (productNames: string[], page?: any) => Promise<ScrapedProduct[]>;
   usePuppeteer: boolean;
 }[] = [
-  { name: 'Voltag', fn: scrapeVoltag, usePuppeteer: false }, // + dandax
   { name: 'Seltex', fn: scrapeSeltex, usePuppeteer: false }, //+ fast
   { name: 'Pcagroup', fn: scrapePcaGroup, usePuppeteer: false }, // + fast
-  // { name: 'Imachinery', fn: scrapeIMachinery, usePuppeteer: false }, //+ fast
-  // { name: 'Recamgr', fn: scrapeRecamgr, usePuppeteer: false }, // + fast
-  // { name: 'Spb.camsparts', fn: scrapeCamsParts, usePuppeteer: false }, // + fast
+  { name: 'Imachinery', fn: scrapeIMachinery, usePuppeteer: false }, //+ fast
+  { name: 'Recamgr', fn: scrapeRecamgr, usePuppeteer: false }, // + fast
+  { name: 'Spb.camsparts', fn: scrapeCamsParts, usePuppeteer: false }, // + fast
   // { name: 'Shtren', fn: scrapeShtren, usePuppeteer: false }, // + dandax 5000
+  // { name: 'Voltag', fn: scrapeVoltag, usePuppeteer: false }, // + dandax
   // { name: 'udtTechnika', fn: udtTechnika, usePuppeteer: false }, // +  dandax
   // { name: '74Parts', fn: scrape74Parts, usePuppeteer: false }, // + dandax
+  // { name: 'Dv-Pt', fn: scrapeDvPt, usePuppeteer: false }, // + dandax
   // { name: 'b2b.ixora-auto', fn: scrapeIxora, usePuppeteer: false }, // +
   // { name: 'Intertrek.info', fn: intertrek, usePuppeteer: false }, // + dandax
   // { name: 'istk-deutz', fn: scrapeIstkDeutz, usePuppeteer: false }, // + dandax
   // { name: 'Truckdrive', fn: scrapeTruckdrive, usePuppeteer: false }, // + dandax
 
   // { name: 'Impart', fn: scrapeImpart, usePuppeteer: false }, // + dandax
-  // { name: 'Truckmir', fn: scrapeTruckmir, usePuppeteer: false }, // shaaaaat dandaxa
-  // { name: 'Mirdiesel', fn: scrapeMirDiesel, usePuppeteer: false }, // posible server dont wokr
-  { name: 'Dv-Pt', fn: scrapeDvPt, usePuppeteer: false }, // + dandax
+  //{ name: 'Truckmir', fn: scrapeTruckmir, usePuppeteer: false }, // shaaaaat dandaxa
 ];
 
-export async function scrapeAll(
-  productNames: string[],
+export async function scrapeAllForText(
+  productNames: InputText,
 ): Promise<ScrapedProduct[]> {
-  console.log('kanchvav !!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-
   const puppeteerScrapers = scrapers.filter((s) => s.usePuppeteer);
   const axiosScrapers = scrapers.filter((s) => !s.usePuppeteer);
 
@@ -74,7 +71,7 @@ export async function scrapeAll(
         try {
           console.log(`🚀 Running Puppeteer scraper: ${scraper.name}`);
           const result = await cluster.execute(async ({ page }) => {
-            return scraper.fn(productNames, page);
+            return scraper.fn([productNames.name], page);
           });
           puppeteerResults.push(...result);
         } catch (err) {
@@ -96,7 +93,7 @@ export async function scrapeAll(
     axiosScrapers.map(async (scraper) => {
       try {
         console.log(`🔍 Running Axios scraper: ${scraper.name}`);
-        const result = await scraper.fn(productNames);
+        const result = await scraper.fn([productNames.name]);
         axiosResults.push(...result);
       } catch (err: any) {
         console.error(`❌ Axios scraper failed: ${scraper.name}`, err.message);
@@ -109,10 +106,4 @@ export async function scrapeAll(
   const allResults = [...puppeteerResults, ...axiosResults];
 
   return allResults;
-  // const results = await Promise.all(scrapers.map((s) => s.fn(productNames)));
-
-  // const res = results.map((i) => i[0]);
-  // console.log(' = res', res);
-
-  // return res;
 }

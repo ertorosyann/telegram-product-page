@@ -19,7 +19,6 @@ export async function scrapeRecamgr(
     const fallbackResult: ScrapedProduct = {
       shop: SOURCE_WEBPAGE_KEYS.recamgr,
       found: false,
-      name,
     };
 
     try {
@@ -95,12 +94,25 @@ export async function scrapeRecamgr(
           firstProduct.find('.price .new_price .price__value').text().trim() ||
           BASICS.zero;
         const price = rawPrice.replace(/\s*₽$/, '');
+        const words = title
+          .replace(/[()]/g, '')
+          .split(/\s+/)
+          .map((word) => word.toLowerCase());
+        const matchBrand = BRANDS.find((brand) => {
+          const brandLower = brand.toLowerCase();
 
+          return words.some((word) => word === brandLower);
+        });
+        let brendOfFirstProduct = matchBrand;
+        if (!brendOfFirstProduct) {
+          brendOfFirstProduct = title;
+        }
         results.push({
           shop: SOURCE_WEBPAGE_KEYS.recamgr,
           found: true,
           name: title,
           price: price,
+          brand: brendOfFirstProduct,
         });
       }
     } catch (error: any) {

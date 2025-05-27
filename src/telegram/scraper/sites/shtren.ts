@@ -84,18 +84,19 @@ export async function scrapeShtren(
               item.querySelector('.posted_in a')?.textContent?.trim() ||
               BASICS.empotyString;
 
-            const matchBrand = BRANDS.find((brand) =>
-              brandInPage.toLowerCase().includes(brand.toLowerCase()),
-            );
+            // const matchBrand = BRANDS.find((brand) =>
+            //   brandInPage.toLowerCase().includes(brand.toLowerCase()),
+            // );
 
-            if (
-              matchBrand &&
-              title.toLowerCase().includes(name.toLowerCase())
-            ) {
-              result.found = true;
-              result.name = title;
-              result.price = price;
-            }
+            // if (
+            //   matchBrand &&
+            //   title.toLowerCase().includes(name.toLowerCase())
+            // ) {
+            result.found = true;
+            result.name = title;
+            result.price = price;
+            result.brand = brandInPage;
+            // }
 
             return result;
           },

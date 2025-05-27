@@ -5,7 +5,6 @@ import { UsersService } from '../authorization/users.service';
 @Injectable()
 export class StartHandler {
   private readonly templateLink = process.env.YANDEX_LINK || '';
-  private readonly adminUsername = 'torosyann1';
 
   constructor(private readonly userService: UsersService) {}
   async handle(ctx: Context) {
@@ -14,7 +13,11 @@ export class StartHandler {
       await ctx.reply('❌ Не удалось определить ваш Telegram username.');
       return;
     }
-
+    const isAdmin = await this.userService.isAdmin(telegramUsername);
+    if (!isAdmin) {
+      await ctx.reply('');
+      return;
+    }
     const x = await getMainMenuKeyboard(
       ctx.from?.username || '',
       this.userService,
@@ -28,6 +31,15 @@ export class StartHandler {
       },
     );
 
-    await ctx.reply('Отправьте текст или Excel-файл, и мы его обработаем');
+    await ctx.reply(
+      '📄 Отправьте текст или Excel-файл, и мы его обработаем.\n\n' +
+        '📌 Также можете отправить вручную в одном из следующих форматов:\n\n' +
+        '✅ Полный формат: 12345, 1, CAT\n' +
+        '✅ Без бренда: 12345, 1\n' +
+        '✅ Без количества: 12345, CAT\n' +
+        '✅ Только артикул: 12345\n\n' +
+        '🔁 Порядок: артикул, количество, бренд\n' +
+        '❗️ Разделяйте значения запятой и соблюдайте порядок.',
+    );
   }
 }

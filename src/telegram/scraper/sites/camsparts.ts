@@ -1,6 +1,5 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { title } from 'process';
 import {
   SOURCE_URLS,
   SOURCE_WEBPAGE_KEYS,
@@ -44,30 +43,21 @@ export async function scrapeCamsParts(
 
       const $$ = cheerio.load(productPage.data);
 
-      // const fullTitle = $$('.shop_product__title[itemprop="name"]')
-      // .text()
-      // .trim();
-      // const titleArray = fullTitle.split(' ');
+      const brand = $$('.breadcrumb__item span[itemprop="name"]');
+      const nameFromBreadcrumb = brand
+        .map((i, el) => $$(el).text())
+        .get()
+        .join(' ');
 
-      // let matchedBrand: boolean | string | undefined = BRANDS.find((brand) => {
-      //   const regex = new RegExp(`\\b${brand}\\b`, 'i'); // \b ensures whole word match
-      //   return regex.test(fullTitle);
-      // });
-      // if (!matchedBrand) {
-      //   for (const word of titleArray) {
-      //     if (
-      //       BRANDS.some((brand) => brand.toLowerCase() === word.toLowerCase())
-      //     ) {
-      //       matchedBrand = true;
-      //       break;
-      //     }
-      //   }
-      // }
+      // Get the third word
+      const words = nameFromBreadcrumb.trim().split(/\s+/);
+      const thirdWord = words[2]; // 0-based index
 
-      // const matchedBrand = BRANDS.find((brand) => {});
-      const brendOfProduct = title.match(/(\b\w+)\s*\/\s*/);
+      console.log(thirdWord); // Output: Cummins
 
-      if (!brendOfProduct) {
+      console.log(thirdWord);
+
+      if (!thirdWord) {
         results.push({
           shop: SOURCE_WEBPAGE_KEYS.camsparts,
           found: false,
@@ -76,8 +66,6 @@ export async function scrapeCamsParts(
         continue;
       }
 
-      const breadcrumbItems = $$('.breadcrumb__item span[itemprop="name"]');
-      const nameFromBreadcrumb = breadcrumbItems.last().text().trim();
       const priceText =
         $$('.price__new[itemprop="offers"] span[itemprop="price"]').attr(
           'content',
@@ -87,9 +75,9 @@ export async function scrapeCamsParts(
       results.push({
         shop: SOURCE_WEBPAGE_KEYS.camsparts,
         found: true,
-        name: nameFromBreadcrumb,
+        name,
         price,
-        brand: brendOfProduct[1],
+        brand: thirdWord,
       });
     } catch (error) {
       console.error(

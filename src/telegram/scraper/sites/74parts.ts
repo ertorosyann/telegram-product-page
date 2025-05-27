@@ -14,7 +14,7 @@ export async function scrape74Parts(
   const url = `${SOURCE_URLS.parts74}${encodeURIComponent(productNumber)}`;
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
-
+  const start = performance.now();
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
@@ -38,6 +38,8 @@ export async function scrape74Parts(
       ) => {
         const items = document.querySelectorAll('.list_item_wrapp');
 
+        let fallback: { name: string; price: string } | null = null;
+
         for (const item of items) {
           const titleEl = item.querySelector('.item-title');
           const priceEl = item.querySelector('.price');
@@ -50,16 +52,19 @@ export async function scrape74Parts(
 
           const resPrice = (() => {
             if (price === '') return emptyString;
-
-            // Extract digits only
             const digitsOnly = price.replace(/\D+/g, '');
-
-            // Check if digitsOnly is a valid number string
             return digitsOnly.length > 0 ? digitsOnly : emptyString;
           })();
-          const lowerTitle = title.toLowerCase();
 
-          if (lowerTitle.includes(productNumber.toLowerCase())) {
+          const lowerTitle = title.toLowerCase();
+          const lowerProductNumber = productNumber.toLowerCase();
+
+          if (lowerTitle.includes(lowerProductNumber)) {
+            // Save first matched product number for fallback
+            if (!fallback) {
+              fallback = { name: title, price: resPrice };
+            }
+
             const matchedBrand = BRANDS.find((brand) =>
               lowerTitle.includes(brand.toLowerCase()),
             );
@@ -70,9 +75,20 @@ export async function scrape74Parts(
                 price: resPrice,
                 shop: shopKey,
                 found: true,
+                brand: matchedBrand,
               };
             }
           }
+        }
+
+        if (fallback) {
+          return {
+            name: fallback.name,
+            price: fallback.price,
+            shop: shopKey,
+            found: true,
+            brand: '',
+          };
         }
 
         return { shop: shopKey, found: false };
@@ -84,6 +100,12 @@ export async function scrape74Parts(
     );
 
     await browser.close();
+    console.log(result);
+    console.log(
+      `Search time for "${productNumbers[0]} in udt":`,
+      performance.now() - start,
+    );
+
     return [result];
   } catch (error: unknown) {
     await browser.close();

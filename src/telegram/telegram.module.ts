@@ -18,7 +18,7 @@ import { StockModule } from 'src/stock/stock.module';
     StockModule,
     TelegrafModule.forRootAsync({
       useFactory: () => ({
-        token: '7559322394:AAHHLZ08o2aK7wD6gctr5RTtDEvdrsFx0HU',
+        token: '7630393603:AAHVgFXYaTVFdO462YdeOaQInRzBTfmAEVg',
         middlewares: [session()],
       }),
     }),

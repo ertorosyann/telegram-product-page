@@ -46,11 +46,11 @@ export class UsersService {
     return user?.role === 'admin' || user?.role === 'torossyann1';
   }
 
-  async isUserAllowed(telegramUsername: string): Promise<boolean> {
-    const user = await this.userModel.findOne({ telegramUsername });
+  // async isUserAllowed(telegramUsername: string): Promise<boolean> {
+  //   const user = await this.userModel.findOne({ telegramUsername });
 
-    return !!user;
-  }
+  //   return !!user;
+  // }
 
   // user.service.ts
   async getAllUsers(): Promise<

@@ -1,22 +1,15 @@
 import puppeteer from 'puppeteer';
 import { BRANDS, SOURCE_WEBPAGE_KEYS } from 'src/constants/constants';
-
-interface VoltagResult {
-  shop: string;
-  found: boolean;
-  brand?: string;
-  price?: string | null;
-  productNumber: string;
-}
+import { ScrapedProduct } from 'src/types/context.interface';
 
 export async function scrapeVoltag(
   productNumbers: string[],
-): Promise<VoltagResult[]> {
+): Promise<ScrapedProduct[]> {
   const start = performance.now();
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
-  const results: VoltagResult[] = [];
+  const results: ScrapedProduct[] = [];
 
   for (const productNumber of productNumbers) {
     try {
@@ -35,7 +28,7 @@ export async function scrapeVoltag(
         results.push({
           shop: 'voltag',
           found: false,
-          productNumber,
+          name: productNumber,
         });
         continue;
       }
@@ -79,13 +72,13 @@ export async function scrapeVoltag(
           found: true,
           brand: matchedProduct.brand,
           price: matchedProduct.price,
-          productNumber,
+          name: productNumber,
         });
       } else {
         results.push({
           shop: 'voltag',
           found: false,
-          productNumber,
+          name: productNumber,
         });
       }
     } catch (error) {
@@ -93,7 +86,7 @@ export async function scrapeVoltag(
       results.push({
         shop: SOURCE_WEBPAGE_KEYS.voltag,
         found: false,
-        productNumber,
+        name: productNumber,
       });
     } finally {
       console.log(results);

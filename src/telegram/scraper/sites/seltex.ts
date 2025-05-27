@@ -40,24 +40,19 @@ export async function scrapeSeltex(
         let fallbackRow: cheerio.Cheerio | null = null;
         let brandMatched: string | null = null;
 
-        // Проходим по строкам, пропуская заголовок (первая строка)
         rows.slice(1).each((_, rowElem) => {
           const row = $(rowElem);
           const tds = row.find('td');
-          if (tds.length < 3) return; // если нет нужных колонок — пропускаем
+          if (tds.length < 3) return;
 
-          // Убираем ссылку из ячейки с названием
           const nameCell = tds.eq(1);
           nameCell.find('a').remove();
           const name = nameCell.text().trim().replace(/\s+/g, ' ');
           if (!name) return;
-
-          // Проверяем, содержится ли бренд в названии
+          const splitName = name.split(' ');
           const matched = BRANDS.find((b) =>
-            name.toLowerCase().includes(b.toLowerCase()),
+            splitName.some((n) => n.toLowerCase() === b.toLowerCase()),
           );
-
-          // Сохраняем первую попавшуюся строку как запасную
           if (!fallbackRow) {
             fallbackRow = row;
           }
@@ -65,38 +60,30 @@ export async function scrapeSeltex(
           if (matched) {
             matchedRow = row;
             brandMatched = matched;
-            return false; // выход из each
+            return false;
           }
         });
 
-        // Выбираем найденную строку или запасную (первая)
         const finalRow = matchedRow || fallbackRow!;
         const finalTds = finalRow.find('td');
 
-        // Проверяем, достаточно ли колонок
         if (finalTds.length < 3) {
           results.push(result);
           return;
         }
-
-        // Извлекаем имя
         const nameCell = finalTds.eq(1);
         nameCell.find('a').remove();
         result.name = nameCell.text().trim().replace(/\s+/g, ' ');
 
-        // Извлекаем цену
         const rawPrice = finalTds.eq(2).text().trim();
         result.price = rawPrice && !isNaN(+rawPrice) ? rawPrice : BASICS.zero;
 
-        // Помечаем, что удалось что-то найти
         result.found = true;
 
-        // Добавляем бренд, если найден
         if (brandMatched) {
           result.brand = brandMatched;
+          results.push(result);
         }
-
-        results.push(result);
       } catch {
         results.push(result);
       } finally {

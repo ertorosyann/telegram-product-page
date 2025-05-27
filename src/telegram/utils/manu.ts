@@ -13,12 +13,6 @@ export async function getMainMenuKeyboard(
       ),
     ],
   ];
-  // const buttons = [
-  //   [Markup.button.url('📥 Скачать шаблон Excel', templateLink)],
-  //   [Markup.button.callback('📝 Запрос одной запчасти', 'single_part_request')],
-  //   [Markup.button.callback('📂 Загрузить файл', 'document')],
-  // ];
-
   const isAdmin = await usersService.isAdmin(username || '');
 
   if (isAdmin) {

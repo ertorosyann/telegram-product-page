@@ -81,15 +81,16 @@ export async function scrapeDvPt(
             }
           });
 
-          const brandMatch = BRANDS.find((brand) =>
-            searchedProductBrand.toLowerCase().includes(brand.toLowerCase()),
-          );
+          // const brandMatch = BRANDS.find((brand) =>
+          //   searchedProductBrand.toLowerCase().includes(brand.toLowerCase()),
+          // );
 
-          if (!brandMatch) {
-            return { found: false, shop: 'dvpt' };
-          }
+          // if (!brandMatch) {
+          // return { found: false, shop: 'dvpt' };
+          // }
 
           return {
+            brend: searchedProductBrand,
             found: true,
             name: title,
             shop: 'dvpt',

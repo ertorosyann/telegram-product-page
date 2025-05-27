@@ -54,12 +54,10 @@ export class DocumentHandler {
 
       const start = performance.now();
       const { messages, rows } = await compareItems(inputItems, skladItems);
-      console.error(
-        (performance.now() - start) / 1000,
-        'verjanakan ardunqn e ',
-      ); // output in seconds
 
+      const durationSec = ((performance.now() - start) / 1000).toFixed(2);
       const resultBuffer = createResultExcelBuffer(rows);
+      await ctx.reply(`⏱ Операция заняла ${durationSec} секунд.`);
 
       // for (const msg of messages) await ctx.reply(msg);
 
